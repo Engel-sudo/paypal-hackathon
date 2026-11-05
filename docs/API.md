@@ -9,7 +9,7 @@ prompt for the token once and keep it in localStorage.
 {
   "mode": { "paypal": "mock" | "sandbox", "ai": "local-model" | "hashed-ngrams", "aiModel": "Xenova/...", "adminRequired": false },
   "settings": { "clubName": "...", "period": "Winter semester 2026/27", "periodStart": "2026-10-01",
-                "dueDate": "2026-11-15", "currency": "EUR", "defaultDues": 30, "autoApplyThreshold": 0.85 },
+                "dueDate": "2026-11-15", "currency": "EUR", "defaultDues": 30, "autoApplyThreshold": 0.8 },
   "summary": { "members": 14, "paid": 6, "partial": 1, "unpaid": 7, "overpaid": 0,
                "expected": 405, "collected": 240, "openProposals": 9, "unmatchedPayments": 3 },
   "members": [ {
