@@ -169,8 +169,8 @@ export function createApp({ paypal, embedder, dataFile, adminToken, now } = {}) 
     const m = store.data.members.find((x) => x.id === inv.memberId);
     paypal.simulatePayInvoice(inv.id, m);
     store.log('paypal', `${m?.name || 'Member'} paid PayPal invoice ${inv.id}`);
-    await agent.run();
-    res.json(state());
+    const counts = await agent.run();
+    res.json({ ...state(), lastRun: counts });
   }));
   app.post('/api/demo/reset', guard, mockOnly, serial(async (req, res) => {
     paypal.reset(true);

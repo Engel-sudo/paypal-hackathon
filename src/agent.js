@@ -40,13 +40,13 @@ export class TreasurerAgent {
       const invoices = await this.paypal.listInvoices();
       this.syncInvoices(invoices);
       const paid = invoices.filter((i) => i.status === 'PAID').length;
-      return { count: invoices.length, detail: invoices.length ? `${invoices.length} invoice(s), ${paid} paid` : 'No invoices yet' };
+      return { count: invoices.length, detail: invoices.length ? `${plural(invoices.length, 'invoice')}, ${paid} paid` : 'No invoices yet' };
     });
     await step({ key: 'transactions', label: 'Fetched incoming payments', api: 'GET /v1/reporting/transactions' }, async () => {
       const txs = await this.paypal.listTransactions({ start: `${s.periodStart}T00:00:00Z`, end: this.now() });
       for (const tx of txs) if (this.upsertPayment(tx)) counts.newPayments++;
       this.paidInvoicesWithoutTransaction();
-      return { count: txs.length, detail: `${txs.length} payment(s), ${counts.newPayments} new` };
+      return { count: txs.length, detail: `${plural(txs.length, 'payment')}, ${counts.newPayments} new` };
     });
 
     // 2 + 3. New payments, oldest first so "already paid" is judged in order.
@@ -67,10 +67,10 @@ export class TreasurerAgent {
       counts.proposals += this.planReminders();
       const created = d.proposals.filter((p) => !before.has(p.id));
       const by = (t) => created.filter((p) => p.type === t).length;
-      const parts = [[by('match') + by('review'), 'to check'], [by('refund'), 'refund(s)'], [by('reminder'), 'invoice(s) to send']].filter(([n]) => n).map(([n, l]) => `${n} ${l}`);
+      const parts = [[by('match') + by('review'), 'to check'], [by('refund'), by('refund') === 1 ? 'refund' : 'refunds'], [by('reminder'), by('reminder') === 1 ? 'invoice to send' : 'invoices to send']].filter(([n]) => n).map(([n, l]) => `${n} ${l}`);
       return { count: created.length, detail: parts.length ? parts.join(' · ') : 'Nothing needs you' };
     });
-    this.store.log('agent', `Agent run: ${counts.newPayments} new payment(s), ${counts.autoMatched} matched automatically, ${counts.proposals} new proposal(s)`);
+    this.store.log('agent', `Agent run: ${plural(counts.newPayments, 'new payment')}, ${counts.autoMatched} matched automatically, ${plural(counts.proposals, 'new proposal')}`);
     this.store.save();
     return counts;
   }
@@ -389,6 +389,7 @@ function reminderText(m, s, count) {
 }
 
 const day = (iso) => new Date(iso).toLocaleDateString('en-US', { day: 'numeric', month: 'short', timeZone: 'UTC' });
+const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
 const listNames = (n) => (n.length <= 1 ? n.join('') : `${n.slice(0, -1).join(', ')} and ${n.at(-1)}`);
 const tone = (count) => (count <= 1 ? 'friendly' : 'firm');
 const first = (name) => String(name || '').split(' ')[0];

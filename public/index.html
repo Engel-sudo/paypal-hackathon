@@ -2,11 +2,24 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Club Treasurer Assistant</title>
-  <meta name="description" content="AI treasurer assistant for sports clubs: matches PayPal payments to members, proposes refunds and sends reminders through PayPal invoices.">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Clubkeep</title>
+  <meta name="description" content="Clubkeep, the AI treasurer for clubs: matches PayPal payments to members, proposes refunds and sends dues invoices through PayPal. Nothing moves without your OK.">
   <meta name="color-scheme" content="light dark">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%232453d6'/%3E%3Cpath d='M9 17.5l4.5 4.5L23 11' stroke='white' stroke-width='3.2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <meta name="theme-color" content="#F6F4EF" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#111110" media="(prefers-color-scheme: dark)">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%231A1916'/%3E%3Cpath d='M23.1 8.5A10 10 0 1 0 25.9 19.6' fill='none' stroke='%23F6F4EF' stroke-width='2.6' stroke-linecap='round'/%3E%3Cpath d='M11.5 16.2l3.6 3.6L27 7.6' fill='none' stroke='%23F4D35E' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <script>
+    // Demo zoom for recordings: ?demo=1 makes everything bigger and forces the light theme.
+    (function () {
+      try {
+        var q = new URLSearchParams(location.search);
+        if (q.get('demo') === '1') { document.documentElement.classList.add('demo'); document.documentElement.setAttribute('data-theme', 'light'); }
+      } catch (e) { /* ignore */ }
+    })();
+  </script>
+  <link rel="preload" href="fonts/geist-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/instrument-serif-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community@32.3.3/styles/ag-grid.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community@32.3.3/styles/ag-theme-quartz.css">
   <link rel="stylesheet" href="styles.css">
@@ -16,95 +29,123 @@
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
 
-  <header class="topbar">
-    <div class="wrap topbar-inner">
-      <div class="brand">
-        <div class="brand-mark" aria-hidden="true">
-          <svg viewBox="0 0 32 32" width="36" height="36"><rect width="32" height="32" rx="9" fill="currentColor"/><path d="M9 17.5l4.5 4.5L23 11" stroke="#fff" stroke-width="3.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </div>
-        <div class="brand-text">
-          <p class="eyebrow">Club Treasurer Assistant</p>
-          <h1 id="club-name">Loading…</h1>
-          <p class="sub" id="club-period">&nbsp;</p>
+  <header class="masthead" id="masthead">
+    <div class="wrap masthead-inner">
+      <a class="brand" href="#/inbox" aria-label="clubkeep, go to To approve">
+        <svg class="brand-mark" viewBox="0 0 32 32" width="30" height="30" aria-hidden="true">
+          <path class="coin" d="M23.1 8.5A10 10 0 1 0 25.9 19.6"/>
+          <path class="tick" d="M11.5 16.2l3.6 3.6L27 7.6"/>
+        </svg>
+        <span class="wordmark">clubkeep</span>
+      </a>
+      <span class="spacer"></span>
+      <span class="mode-chip" id="mode-chip"><span class="led" aria-hidden="true"></span><span id="mode-text">Connecting…</span></span>
+      <div class="menu-wrap">
+        <button id="demo-menu" class="btn btn-quiet btn-sm" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="demo-menu-list">
+          <span>Demo</span>
+          <svg class="ico ico-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <div class="menu" id="demo-menu-list" role="menu" aria-labelledby="demo-menu" hidden>
+          <p class="menu-note">Only in the demo. These act on the mock PayPal account.</p>
+          <button id="simulate-payment" class="menu-item" role="menuitem" type="button">
+            <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+            <span><b>Simulate a payment</b><small>A member pays into PayPal</small></span>
+          </button>
+          <button id="reset-demo" class="menu-item" role="menuitem" type="button">
+            <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.4-5.7M4 4v4h4"/></svg>
+            <span><b>Reset demo</b><small>Fresh club, empty PayPal inbox</small></span>
+          </button>
         </div>
       </div>
-      <div class="badges" id="mode-badges" aria-label="Connection modes"></div>
     </div>
+    <div class="run-hairline" aria-hidden="true"></div>
   </header>
 
-  <main id="main" class="wrap">
-    <section class="actionbar" aria-label="Actions">
-      <button id="run-agent" class="btn btn-primary btn-lg" type="button">
-        <span class="spinner" aria-hidden="true"></span>
-        <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2.4 5.6L20 10l-5.6 2.4L12 18l-2.4-5.6L4 10l5.6-2.4z"/></svg>
-        <span class="label">Run treasurer agent</span>
-      </button>
-      <div class="actions-secondary">
-        <button id="simulate-payment" class="btn demo-only" type="button">
-          <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
-          <span>Simulate <span class="long">incoming </span>payment</span>
+  <main id="main" class="wrap" tabindex="-1">
+    <section class="clubline" aria-labelledby="club-name">
+      <div class="clubline-text">
+        <h1 id="club-name">Loading your club…</h1>
+        <p id="club-period" class="club-period">&nbsp;</p>
+      </div>
+      <div class="actionbar" id="actionbar">
+        <button id="bar-inbox" class="btn btn-secondary bar-inbox" type="button" data-goto="inbox">To approve <span class="num" id="bar-inbox-count"></span></button>
+        <button id="run-agent" class="btn btn-primary btn-lg" type="button">
+          <svg class="ico run-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.3-5.7M20 4v4.5h-4.5"/></svg>
+          <span class="label">Check PayPal payments</span><span class="label-short">Check payments</span>
         </button>
-        <button id="reset-demo" class="btn btn-ghost demo-only" type="button">
-          <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.4-5.7M4 4v4h4"/></svg>
-          Reset demo
-        </button>
-        <a id="export-csv" class="btn btn-ghost" href="/api/export.csv" download>
-          <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m0 0l-4-4m4 4l4-4M5 19h14"/></svg>
-          Export CSV
-        </a>
       </div>
     </section>
 
-    <section class="kpis" aria-label="Key figures">
-      <div class="kpi kpi-wide">
-        <div class="kpi-label">Collected</div>
-        <div class="kpi-value"><span id="kpi-collected">–</span><span class="kpi-of"> of <span id="kpi-expected">–</span></span></div>
-        <div class="progress" role="progressbar" aria-label="Collected of expected" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="kpi-progress"><span></span></div>
-        <div class="kpi-foot" id="kpi-progress-text">&nbsp;</div>
+    <!-- First run: before the agent has ever looked at PayPal -->
+    <section class="firstrun" id="firstrun" aria-labelledby="fr-title" hidden>
+      <div class="fr-main">
+        <h2 id="fr-title" class="display">Let’s collect this season’s dues.</h2>
+        <ol class="fr-steps">
+          <li><span class="fr-n">1</span><div><b>We read your PayPal payments</b><span>Every payment since the season started, with its note.</span></div></li>
+          <li><span class="fr-n">2</span><div><b>We match them to members and show why</b><span>Nicknames, typos, a parent paying for two kids.</span></div></li>
+          <li><span class="fr-n">3</span><div><b>You approve refunds and reminders</b><span>Refunds and invoices wait for your OK.</span></div></li>
+        </ol>
+        <div class="fr-cta" id="fr-cta-slot"></div>
       </div>
-      <div class="kpi kpi-members">
-        <div class="kpi-label">Members</div>
-        <div class="kpi-split">
-          <div><span class="dot dot-paid"></span><b id="kpi-paid">–</b> paid</div>
-          <div><span class="dot dot-partial"></span><b id="kpi-partial">–</b> partial</div>
-          <div><span class="dot dot-unpaid"></span><b id="kpi-unpaid">–</b> unpaid</div>
-        </div>
-        <div class="stack" id="kpi-stack" aria-hidden="true"></div>
+      <aside class="ledger-card" aria-label="This season">
+        <p class="ledger-label">This season</p>
+        <dl class="ledger-lines" id="fr-ledger"></dl>
+      </aside>
+    </section>
+
+    <!-- Hero strip: one sentence of money, one call to action -->
+    <section class="hero" id="hero" aria-label="Season summary" hidden>
+      <div class="hero-money">
+        <p class="hero-label">Collected so far</p>
+        <p class="hero-amount"><span id="hero-collected">$0</span> <em>of <span id="hero-expected">$0</span></em></p>
+        <div class="segbar" id="hero-bar" role="img" aria-label=""></div>
+        <p class="hero-legend" id="hero-legend"></p>
       </div>
-      <button class="kpi kpi-link" type="button" data-goto="inbox" aria-label="Open proposals, go to agent inbox">
-        <div class="kpi-label">Open proposals</div>
-        <div class="kpi-value" id="kpi-proposals">–</div>
-        <div class="kpi-foot">waiting for your approval</div>
-      </button>
-      <button class="kpi kpi-link" type="button" data-goto="payments" aria-label="Unmatched payments, go to payments">
-        <div class="kpi-label">Unmatched payments</div>
-        <div class="kpi-value" id="kpi-unmatched">–</div>
-        <div class="kpi-foot">need a member or a refund</div>
+      <button class="hero-decide" id="hero-decide" type="button" data-goto="inbox">
+        <span class="hd-count num" id="hero-open">0</span>
+        <span class="hd-text"><b id="hero-open-label">decisions waiting for you</b><span id="hero-open-sub"></span></span>
+        <span class="hd-go" aria-hidden="true">Review <svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
       </button>
     </section>
 
     <nav class="tabs" role="tablist" aria-label="Sections">
-      <button role="tab" id="tab-members" aria-controls="panel-members" aria-selected="true" type="button">Members <span class="count" id="count-members"></span></button>
+      <button role="tab" id="tab-inbox" aria-controls="panel-inbox" aria-selected="true" type="button">To approve <span class="count" id="count-inbox"></span></button>
+      <button role="tab" id="tab-members" aria-controls="panel-members" aria-selected="false" tabindex="-1" type="button">Members <span class="count" id="count-members"></span></button>
       <button role="tab" id="tab-payments" aria-controls="panel-payments" aria-selected="false" tabindex="-1" type="button">Payments <span class="count" id="count-payments"></span></button>
-      <button role="tab" id="tab-inbox" aria-controls="panel-inbox" aria-selected="false" tabindex="-1" type="button">Agent inbox <span class="count count-hot" id="count-inbox"></span></button>
-      <button role="tab" id="tab-activity" aria-controls="panel-activity" aria-selected="false" tabindex="-1" type="button">Activity</button>
+      <button role="tab" id="tab-activity" aria-controls="panel-activity" aria-selected="false" tabindex="-1" type="button">History</button>
     </nav>
 
-    <section id="panel-members" class="panel" role="tabpanel" aria-labelledby="tab-members">
+    <section id="panel-inbox" class="panel" role="tabpanel" aria-labelledby="tab-inbox">
+      <div class="inbox-layout">
+        <div class="inbox-main">
+          <div id="run-timeline" class="run-timeline" hidden></div>
+          <div id="inbox"></div>
+        </div>
+        <aside class="inbox-aside" id="inbox-aside" aria-labelledby="auto-title" hidden></aside>
+      </div>
+    </section>
+
+    <section id="panel-members" class="panel" role="tabpanel" aria-labelledby="tab-members" hidden>
       <div class="toolbar">
         <label class="search">
           <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/></svg>
           <span class="sr-only">Search members</span>
-          <input id="members-search" type="search" placeholder="Search members…" autocomplete="off">
+          <input id="members-search" type="search" placeholder="Search members" autocomplete="off">
         </label>
-        <div class="chips" id="member-chips" role="group" aria-label="Filter by status"></div>
-        <button id="add-member" class="btn btn-sm" type="button">
-          <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+        <div class="chips" id="member-chips" role="group" aria-label="Show members"></div>
+        <span class="spacer"></span>
+        <button id="members-reset-view" class="btn btn-quiet btn-sm reset-view" type="button" hidden>Reset view</button>
+        <button id="export-csv" class="btn btn-secondary btn-sm" type="button">
+          <svg class="ico ico-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m0 0l-4-4m4 4l4-4M5 19h14"/></svg>
+          Export CSV
+        </button>
+        <button id="add-member" class="btn btn-secondary btn-sm" type="button">
+          <svg class="ico ico-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
           Add member
         </button>
       </div>
       <div id="members-grid" class="grid ag-theme-quartz"></div>
-      <p class="hint">Double-click email, nicknames or dues to edit. Nicknames help the AI recognise notes like “für Maxi”.</p>
+      <p class="hint">Double-click a nickname or a dues amount to change it. Nicknames help us recognise notes like “dues - Fabi”.</p>
     </section>
 
     <section id="panel-payments" class="panel" role="tabpanel" aria-labelledby="tab-payments" hidden>
@@ -112,26 +153,30 @@
         <label class="search">
           <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/></svg>
           <span class="sr-only">Search payments</span>
-          <input id="payments-search" type="search" placeholder="Search payer, note, member…" autocomplete="off">
+          <input id="payments-search" type="search" placeholder="Search payer, note or member" autocomplete="off">
         </label>
-        <div class="chips" id="payment-chips" role="group" aria-label="Filter by status"></div>
+        <div class="chips" id="payment-chips" role="group" aria-label="Show payments"></div>
+        <span class="spacer"></span>
+        <button id="payments-reset-view" class="btn btn-quiet btn-sm reset-view" type="button" hidden>Reset view</button>
       </div>
       <div id="payments-grid" class="grid ag-theme-quartz"></div>
-      <p class="hint">Click a payment to see why the AI matched it, and to assign it by hand.</p>
-    </section>
-
-    <section id="panel-inbox" class="panel" role="tabpanel" aria-labelledby="tab-inbox" hidden>
-      <div id="inbox" aria-live="polite"></div>
+      <p class="hint">Open a payment to see why we matched it, or to assign it yourself.</p>
     </section>
 
     <section id="panel-activity" class="panel" role="tabpanel" aria-labelledby="tab-activity" hidden>
-      <ol id="activity" class="timeline"></ol>
+      <div class="history-head">
+        <h2 class="h2">History</h2>
+        <p class="muted">Every agent decision, every PayPal call and everything you approved.</p>
+      </div>
+      <div id="activity" class="history"></div>
     </section>
   </main>
 
-  <footer class="wrap footer">
-    <span id="footer-ai"></span>
-  </footer>
+  <footer class="wrap" id="footer"><div class="footer">
+    <p><svg class="ico ico-sm" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+      Payment details stay on the club’s server and are never sent to an AI company.</p>
+    <p class="footer-mode" id="footer-mode"></p>
+  </div></footer>
 
   <!-- Payment side panel -->
   <div class="scrim" id="scrim" hidden></div>
@@ -141,7 +186,7 @@
         <p class="eyebrow">Payment</p>
         <h2 id="pp-title">–</h2>
       </div>
-      <button class="icon-btn" id="pp-close" type="button" aria-label="Close payment panel">
+      <button class="icon-btn panel-close" id="pp-close" data-close type="button" aria-label="Close payment">
         <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
       </button>
     </div>
@@ -151,16 +196,16 @@
   <!-- Simulate payment dialog -->
   <dialog id="sim-dialog" class="modal" aria-labelledby="sim-title">
     <form method="dialog" id="sim-form">
-      <h2 id="sim-title">Simulate incoming payment</h2>
-      <p class="muted">Sends a payment into the mock PayPal account, as if a member paid.</p>
-      <label class="field"><span>Payer name</span><input name="payerName" placeholder="e.g. Sabine Becker" autocomplete="off"></label>
-      <label class="field"><span>Payer email <em>(optional)</em></span><input name="payerEmail" type="email" placeholder="sabine@example.com" autocomplete="off"></label>
-      <label class="field"><span>Amount (EUR)</span><input name="amount" type="number" step="0.01" min="0.01" placeholder="30"></label>
-      <label class="field"><span>Note</span><input name="note" placeholder="e.g. beitrag für tommy" autocomplete="off"></label>
+      <h2 id="sim-title">Simulate a payment</h2>
+      <p class="muted">Puts a payment into the mock PayPal account, as if someone paid the club. Leave it empty for a random messy one.</p>
+      <label class="field"><span>Payer name</span><input id="sim-payer" name="payerName" placeholder="Sabine Becker" autocomplete="off"></label>
+      <label class="field"><span>Payer email <em>optional</em></span><input id="sim-email" name="payerEmail" type="email" placeholder="sabine@example.com" autocomplete="off"></label>
+      <label class="field"><span id="sim-amount-label">Amount</span><input id="sim-amount" name="amount" type="number" step="0.01" min="0.01" placeholder="30" inputmode="decimal"></label>
+      <label class="field"><span>Note</span><input id="sim-note" name="note" placeholder="dues for tommy" autocomplete="off"></label>
       <div class="modal-actions">
-        <button type="button" class="btn btn-ghost" id="sim-random">Random messy payment</button>
+        <button type="button" class="btn btn-quiet" id="sim-random">Random messy payment</button>
         <span class="spacer"></span>
-        <button type="button" class="btn btn-ghost" value="cancel" id="sim-cancel">Cancel</button>
+        <button type="button" class="btn btn-secondary" id="sim-cancel">Cancel</button>
         <button type="submit" class="btn btn-primary" id="sim-submit">Send payment</button>
       </div>
     </form>
@@ -169,19 +214,35 @@
   <!-- Add member dialog -->
   <dialog id="member-dialog" class="modal" aria-labelledby="member-title">
     <form method="dialog" id="member-form">
-      <h2 id="member-title">Add member</h2>
-      <label class="field"><span>Name</span><input name="name" required autocomplete="off"></label>
-      <label class="field"><span>Email</span><input name="email" type="email" required autocomplete="off"></label>
-      <label class="field"><span>Nicknames <em>(comma separated)</em></span><input name="nicknames" placeholder="Maxi, Max B." autocomplete="off"></label>
-      <label class="field"><span>Dues (EUR)</span><input name="dues" type="number" step="0.01" min="0"></label>
+      <h2 id="member-title">Add a member</h2>
+      <label class="field"><span>Name</span><input id="mem-name" name="name" required autocomplete="off"></label>
+      <label class="field"><span>Email</span><input id="mem-email" name="email" type="email" required autocomplete="off"></label>
+      <label class="field"><span>Nicknames <em>comma separated</em></span><input id="mem-nick" name="nicknames" placeholder="Maxi, Max C." autocomplete="off"></label>
+      <label class="field"><span id="mem-dues-label">Dues</span><input id="mem-dues" name="dues" type="number" step="0.01" min="0" inputmode="decimal"></label>
       <div class="modal-actions">
         <span class="spacer"></span>
-        <button type="button" class="btn btn-ghost" id="member-cancel">Cancel</button>
+        <button type="button" class="btn btn-secondary" id="member-cancel">Cancel</button>
         <button type="submit" class="btn btn-primary">Add member</button>
       </div>
     </form>
   </dialog>
 
-  <div id="toasts" class="toasts" aria-live="polite" aria-atomic="false"></div>
+  <!-- Generic confirm (reset, delete) -->
+  <dialog id="confirm-dialog" class="modal modal-sm" aria-labelledby="confirm-title" aria-describedby="confirm-body">
+    <form method="dialog">
+      <h2 id="confirm-title">Are you sure?</h2>
+      <p id="confirm-body" class="muted"></p>
+      <div class="modal-actions">
+        <span class="spacer"></span>
+        <button type="button" class="btn btn-secondary" id="confirm-cancel">Cancel</button>
+        <button type="button" class="btn btn-primary" id="confirm-ok">OK</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div class="toasts" id="toasts">
+    <div id="status" class="toast-region" role="status" aria-live="polite"></div>
+    <div id="alert" class="toast-region" role="alert"></div>
+  </div>
 </body>
 </html>
