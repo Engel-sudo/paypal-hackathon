@@ -21,6 +21,8 @@ Done:
 - Frontend (public/) with members/payments grids, agent inbox, activity log.
 - README with sections for the 5 judging criteria, MIT LICENSE, docs/PITCH.md, docs/DEVPOST.md, docs/VIDEO_SCRIPT.md.
 - render.yaml (free plan).
+- video/demo.mp4 (1:52, 1080p, burned-in captions, no voice) recorded by `video/record.mjs`
+  (`NODE_PATH=$(npm root -g) node video/record.mjs`). Screenshots in docs/img/.
 
 Not verified here (blocked network in the build sandbox):
 - Real PayPal sandbox calls (api-m.sandbox.paypal.com not reachable from the build box). Request shapes are
@@ -33,6 +35,6 @@ Not verified here (blocked network in the build sandbox):
 - Create PayPal developer sandbox app, enable Transaction Search + Invoicing, set keys on Render.
 - Send 5 to 10 test payments with messy notes from sandbox personal accounts (Transaction Search lags).
 - Deploy on Render, check memory with the local model, fill the hosted URL TODOs.
-- Record the sandbox dashboard shot and the voiceover; upload the video to YouTube.
+- Record the voiceover from docs/VIDEO_SCRIPT.md over video/demo.mp4, add the sandbox dashboard shot, upload to YouTube.
 - Talk to 2 to 3 real treasurers; put their real quotes into the README/PITCH TODOs.
 - Register on Devpost, paste docs/DEVPOST.md, submit by Nov 10.

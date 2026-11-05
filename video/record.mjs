@@ -1,22 +1,24 @@
 // Records the demo video: starts the app with a fresh demo club, drives the browser through the
 // demo flow with burned-in captions and title cards, and writes video/demo.mp4 (needs ffmpeg).
 //
-//   node video/record.mjs                 # records against a fresh local server
+//   NODE_PATH=$(npm root -g) node video/record.mjs   # records against a fresh local server
 //   LOCAL_AGGRID=/path/to/ag-grid-community/package node video/record.mjs   # offline: serve AG Grid from disk
 //
 // No voice track: record the voiceover from docs/VIDEO_SCRIPT.md over it.
-import { chromium } from 'playwright';
+import { createRequire } from 'node:module';
 import { spawn, execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+// Playwright is not a project dependency; use a global install (NODE_PATH=$(npm root -g)).
+const { chromium } = createRequire(import.meta.url)('playwright');
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = path.join(ROOT, 'video');
 const PORT = Number(process.env.VIDEO_PORT || 3123);
 const BASE = `http://127.0.0.1:${PORT}`;
-const W = 1920, H = 1080;
+const W = 1536, H = 864; // recorded at the viewport size, upscaled to 1080p by ffmpeg
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'kassenwart-video-'));
@@ -32,7 +34,7 @@ for (let i = 0; i < 50; i++) {
 
 const browser = await chromium.launch();
 const context = await browser.newContext({
-  viewport: { width: 1536, height: 864 },
+  viewport: { width: W, height: H },
   deviceScaleFactor: 1,
   recordVideo: { dir: path.join(OUT, 'raw'), size: { width: W, height: H } },
   colorScheme: 'light',
@@ -198,6 +200,6 @@ server.kill();
 
 const raw = await video.path();
 const mp4 = path.join(OUT, 'demo.mp4');
-execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-i', raw, '-c:v', 'libx264', '-preset', 'medium', '-crf', '22', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', '-an', mp4]);
+execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-i', raw, '-vf', 'scale=1920:1080:flags=lanczos', '-c:v', 'libx264', '-preset', 'medium', '-crf', '22', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', '-an', mp4]);
 fs.rmSync(path.join(OUT, 'raw'), { recursive: true, force: true });
 console.log(`Wrote ${mp4} (~${seconds}s)`);

@@ -12,6 +12,14 @@ waits for the treasurer's one-click approval. The AI runs on the club's own serv
 
 ---
 
+![Agent inbox: refunds, reminders and matches waiting for one click](docs/img/inbox.png)
+
+| Members (AG Grid) | Why the AI matched a payment |
+|---|---|
+| ![Members grid](docs/img/members.png) | ![Payment panel with AI reasoning](docs/img/payment-panel.png) |
+
+Demo video (captions, no voiceover yet): [`video/demo.mp4`](video/demo.mp4), recorded with `video/record.mjs`.
+
 ## Try it
 
 **Hosted demo:** `https://kassenwart.onrender.com` **[TODO: confirm URL after first Render deploy]**
