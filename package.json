@@ -1,0 +1,20 @@
+{
+  "name": "club-treasurer",
+  "version": "1.0.0",
+  "description": "AI club treasurer assistant: matches PayPal payments to members, sends reminders via PayPal Invoicing, handles refunds.",
+  "type": "module",
+  "main": "server.js",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "node --test test/"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@huggingface/transformers": "^3.8.1",
+    "express": "^4.21.2"
+  }
+}
