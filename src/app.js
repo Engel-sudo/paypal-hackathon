@@ -158,8 +158,9 @@ export function createApp({ paypal, embedder, dataFile, adminToken, now } = {}) 
       note: b.note ?? base.note ?? '',
     });
     store.log('paypal', `Incoming PayPal payment: ${tx.amount} EUR from ${tx.payerName} ("${tx.note}")`);
-    store.save();
-    res.json({ ...state(), simulated: tx });
+    // Like a PayPal webhook would: sync and match right away.
+    const counts = await agent.run();
+    res.json({ ...state(), simulated: tx, lastRun: counts });
   }));
   app.post('/api/demo/pay-invoice/:invoiceId', guard, mockOnly, serial(async (req, res) => {
     const inv = store.data.invoices.find((i) => i.id === req.params.invoiceId);

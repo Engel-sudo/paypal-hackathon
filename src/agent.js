@@ -137,7 +137,7 @@ export class TreasurerAgent {
       proposals += this.propose({
         type: 'refund', paymentId: p.id, memberId: member.id, amount: p.amount, confidence: match.confidence,
         title: `Refund duplicate payment from ${member.name}`,
-        detail: `${member.name} already paid ${prev ? `${money(prev.amount, prev.currency)} on ${prev.date.slice(0, 10)}` : 'this period'}. This ${money(p.amount, p.currency)} on ${p.date.slice(0, 10)} looks like a second payment.`,
+        detail: `${member.name} already paid ${prev ? `${money(prev.amount, prev.currency)} on ${day(prev.date)}` : 'this period'}. This ${money(p.amount, p.currency)} on ${day(p.date)} looks like a second payment.`,
         message: `Hi ${first(member.name)}, you paid your ${s.period} dues twice, so we've refunded ${money(p.amount, p.currency)}. Thanks for being so quick!`,
       });
       return { auto: false, proposals };
@@ -351,7 +351,7 @@ function reminderText(m, s, count) {
   const name = first(m.name);
   const amount = money(m.outstanding, s.currency);
   if (count === 0) {
-    return `Hi ${name}! Quick one from ${s.clubName}: your ${s.period} dues of ${amount} are still open (due ${s.dueDate}). You can pay straight from this PayPal invoice. Thanks!`;
+    return `Hi ${name}! Quick one from ${s.clubName}: your ${s.period} dues of ${amount} are still open (due ${day(s.dueDate)}). You can pay straight from this PayPal invoice. Thanks!`;
   }
   if (count === 1) {
     return `Hi ${name}, a friendly nudge: the ${amount} for ${s.period} hasn't come in yet. The invoice link is below. If you've already paid, just reply and we'll sort it out.`;
@@ -359,6 +359,7 @@ function reminderText(m, s, count) {
   return `Hi ${name}, your ${s.period} dues of ${amount} are now overdue (reminder ${count}). Please pay this week, or talk to us if something's up. We'd rather find a solution than lose you.`;
 }
 
+const day = (iso) => new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' });
 const tone = (count) => (count <= 1 ? 'friendly' : 'firm');
 const first = (name) => String(name || '').split(' ')[0];
 const labelText = (l) => ({ event: 'an event payment', donation: 'a donation', other: 'something else' }[l] || l);

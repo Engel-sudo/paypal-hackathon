@@ -60,7 +60,7 @@ prompt for the token once and keep it in localStorage.
 | DELETE | /api/members/:id | | remove |
 | PUT | /api/settings | partial settings | edit |
 | GET | /api/export.csv | | members CSV |
-| POST | /api/demo/simulate-payment | `{ payerName, payerEmail?, amount, note }` (all optional -> random messy one) | mock only: new incoming PayPal payment |
+| POST | /api/demo/simulate-payment | `{ payerName, payerEmail?, amount, note }` (all optional -> random messy one) | mock only: new incoming PayPal payment, then an agent run (like a webhook) |
 | POST | /api/demo/pay-invoice/:invoiceId | | mock only: member pays the invoice |
 | POST | /api/demo/reset | | reseed club and mock PayPal |
 | POST | /api/webhooks/paypal | PayPal webhook | verifies (if PAYPAL_WEBHOOK_ID) and runs a sync |
