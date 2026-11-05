@@ -48,7 +48,7 @@ export function scoreMember(payment, member, ctx = {}) {
   }
   const alias = (member.payerAliases || []).find((a) =>
     (a.email && normalize(a.email) === payerEmail) || (a.name && fold(normalize(a.name)) === payerToks.join(' ')));
-  if (alias) ev.push({ p: 0.6, reason: `${payment.payerName} paid for ${member.name} before (learned)` });
+  if (alias) ev.push({ p: 0.7, reason: `${payment.payerName} paid for ${member.name} before (learned)` });
 
   // Names in the note.
   const firstHit = findWord(np.first, noteToks);

@@ -1,0 +1,27 @@
+# Render Blueprint: New > Blueprint, point it at this repo.
+services:
+  - type: web
+    name: kassenwart
+    runtime: node
+    plan: free
+    buildCommand: npm ci --omit=dev
+    startCommand: node server.js
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: 22
+      - key: AI_MODE
+        value: local
+      - key: EMBED_MODEL
+        value: Xenova/paraphrase-multilingual-MiniLM-L12-v2
+      - key: DATA_DIR
+        value: /tmp/kassenwart
+      # Set these in the Render dashboard to switch from the mock to the PayPal sandbox.
+      - key: PAYPAL_CLIENT_ID
+        sync: false
+      - key: PAYPAL_CLIENT_SECRET
+        sync: false
+      - key: PAYPAL_WEBHOOK_ID
+        sync: false
+      - key: ADMIN_TOKEN
+        sync: false
