@@ -158,7 +158,7 @@ initials, typos, one payment for several people, parents paying for children. Wh
 ## 5. Presentation
 
 - Demo video (under 3 minutes): **[TODO: YouTube link]**. It is narrated with an AI-generated
-  voiceover (made with a free text-to-speech tool) and has captions. The narration script is
+  voiceover (Kokoro-82M, a free open-source text-to-speech model run locally) and has captions. The narration script is
   [`docs/VIDEO_SCRIPT.md`](docs/VIDEO_SCRIPT.md). **[TODO: optional shot of the refund and invoices in
   the PayPal sandbox dashboard, once sandbox keys are set.]**
 - Pitch: [`docs/PITCH.md`](docs/PITCH.md). Devpost text: [`docs/DEVPOST.md`](docs/DEVPOST.md).
@@ -192,7 +192,7 @@ All calls go to `https://api-m.sandbox.paypal.com` for this entry.
 | Scoring engine (our code, `src/ai/matcher.js`) | Combines embedding similarity with name/nickname matches (typo-tolerant), initials, payer email, shared surname, and amount arithmetic into a confidence score with reasons and alternatives; decides splits across members |
 | Hashed character n-gram embedder (our code) | Fallback when the model can't be downloaded or `AI_MODE=hashed`; also used by the tests for deterministic, offline runs |
 | Treasurer agent (our code, `src/agent.js`) | Sync -> match -> auto-apply above threshold -> propose refunds/reminders -> execute approved PayPal actions |
-| Text-to-speech tool (demo video only) | The video's narration is a synthetic voiceover. **[TODO: name the text-to-speech tool used.]** |
+| Text-to-speech tool (demo video only) | The video's narration is a synthetic voice: [Kokoro-82M](https://github.com/thewh1teagle/kokoro-onnx) (Apache-2.0, runs offline via `kokoro-onnx`), voice `af_heart`, generated from `video/narration.json` |
 
 No paid or hosted AI API is used. The quantized model (about 23 MB) is downloaded from the Hugging Face
 Hub on first use and cached. It was chosen to fit comfortably in the 512 MB of Render's free instance.

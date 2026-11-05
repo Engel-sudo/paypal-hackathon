@@ -67,7 +67,7 @@ same buttons hit the PayPal sandbox.
 - **Deploy:** Render free tier via `render.yaml`.
 - **Tests:** `node:test` with a fake embedder and the mock PayPal client.
 - **Demo video:** recorded automatically with Playwright, captioned, with an AI-generated narration made with
-  a free text-to-speech tool. **[TODO: name the text-to-speech tool.]**
+  Kokoro-82M, an open-source (Apache-2.0) text-to-speech model run offline through `kokoro-onnx`.
 
 ## Challenges we ran into
 
@@ -132,8 +132,8 @@ same buttons hit the PayPal sandbox.
 > (our code) turns the results into proposals (refund via PayPal Payments v2, invoice and reminder via
 > PayPal Invoicing v2) that execute only after the treasurer approves.
 >
-> **Demo video.** The narration is a synthetic voiceover generated with a free text-to-speech tool from our
-> script. [TODO: name the tool.]
+> **Demo video.** The narration is a synthetic voiceover generated with Kokoro-82M, an open-source text-to-speech model, from our
+> script.
 >
 > **Development tools.** [TODO: list the AI coding assistants used during development, e.g. which
 > assistant and for what, so the Tools section is complete and accurate.]

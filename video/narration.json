@@ -1,0 +1,14 @@
+[
+  {"id": "cold",     "text": "Every club has a treasurer. Usually a volunteer, doing the books at the kitchen table."},
+  {"id": "problem",  "text": "This is a climbing club's PayPal account at the start of the season. Sixty dollars from Sarah, for Max and Tom. Dues from someone called Fabi. Lena, twice. And fifteen dollars from a stranger, for a trip. So, who paid for what?"},
+  {"id": "intro",    "text": "Clubkeep is an AI treasurer for clubs that collect dues on PayPal. It works out who paid, chases who didn't, and returns what shouldn't be there. And nothing moves without your okay."},
+  {"id": "start",    "text": "Here's the club. Fourteen members, four hundred and five dollars in dues, and nothing booked yet."},
+  {"id": "run",      "text": "One click. Clubkeep pulls the payments from PayPal, and an AI model that runs on the club's own server matches each one to a member."},
+  {"id": "reasons",  "text": "Six are matched straight away. Fabi is Fabian Ward. Leoni, with a typo, is Leonie Fischer. And every match shows its reasons, so you can check it."},
+  {"id": "inbox",    "text": "Everything else comes to you. Sarah's sixty dollars covers her two kids, Max and Tom. Lena paid twice. Mark isn't a member, he paid for a trip. And Sophie is five dollars short."},
+  {"id": "approve",  "text": "Confirm the split. Approve the refund, and Clubkeep sends Lena's money back through the PayPal Payments API."},
+  {"id": "remind",   "text": "Everyone who still owes gets a PayPal invoice, with a friendly note you can edit. Send them all in one go."},
+  {"id": "paid",     "text": "When a member pays their invoice, the next sync marks them as paid."},
+  {"id": "history",  "text": "Every decision, and every PayPal call, is on the record."},
+  {"id": "close",    "text": "Clubkeep. Open source, free to run, and built on PayPal. A semester of spreadsheet work, done in two minutes."}
+]
