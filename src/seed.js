@@ -9,7 +9,8 @@ export function seedClub() {
       dueDate: '2026-11-15',
       currency: 'EUR',
       defaultDues: 30,
-      autoApplyThreshold: 0.85,
+      autoApplyThreshold: 0.8,
+      reminderIntervalDays: 7,
     },
     members: [
       m('m01', 'Lena Hoffmann', 'lena.hoffmann@example.com'),

@@ -22,8 +22,11 @@ export function fold(token) {
   return token.replace(/ae/g, 'a').replace(/oe/g, 'o').replace(/ue/g, 'u');
 }
 
+// Words of a text. Dots are kept only inside email addresses ("J." -> "j").
 export function tokens(text) {
-  return normalize(text).split(' ').filter(Boolean);
+  return normalize(text).split(' ')
+    .flatMap((t) => (t.includes('@') ? [t] : t.split('.')))
+    .filter(Boolean);
 }
 
 // Optimal string alignment distance (Levenshtein with adjacent swaps).
