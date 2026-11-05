@@ -26,24 +26,50 @@ export class TreasurerAgent {
   async run() {
     const d = this.data;
     const s = d.settings;
-    const counts = { newPayments: 0, autoMatched: 0, proposals: 0 };
+    const counts = { newPayments: 0, autoMatched: 0, proposals: 0, steps: [] };
+    // Each step is reported to the UI, which plays it back as the agent-run timeline.
+    const step = async (fields, fn) => {
+      const t0 = performance.now();
+      const extra = await fn();
+      counts.steps.push({ ...fields, ...extra, ms: Math.round(performance.now() - t0) });
+    };
+    const before = new Set(d.proposals.map((p) => p.id));
 
     // 1. PayPal -> local state.
-    const invoices = await this.paypal.listInvoices();
-    this.syncInvoices(invoices);
-    const txs = await this.paypal.listTransactions({ start: `${s.periodStart}T00:00:00Z`, end: this.now() });
-    for (const tx of txs) if (this.upsertPayment(tx)) counts.newPayments++;
-    this.paidInvoicesWithoutTransaction();
+    await step({ key: 'invoices', label: 'Checked invoice status', api: 'GET /v2/invoicing/invoices' }, async () => {
+      const invoices = await this.paypal.listInvoices();
+      this.syncInvoices(invoices);
+      const paid = invoices.filter((i) => i.status === 'PAID').length;
+      return { count: invoices.length, detail: invoices.length ? `${invoices.length} invoice(s), ${paid} paid` : 'No invoices yet' };
+    });
+    await step({ key: 'transactions', label: 'Fetched incoming payments', api: 'GET /v1/reporting/transactions' }, async () => {
+      const txs = await this.paypal.listTransactions({ start: `${s.periodStart}T00:00:00Z`, end: this.now() });
+      for (const tx of txs) if (this.upsertPayment(tx)) counts.newPayments++;
+      this.paidInvoicesWithoutTransaction();
+      return { count: txs.length, detail: `${txs.length} payment(s), ${counts.newPayments} new` };
+    });
 
     // 2 + 3. New payments, oldest first so "already paid" is judged in order.
     const fresh = d.payments.filter((p) => p.status === 'unmatched' && !p.reviewed).sort((a, b) => a.date.localeCompare(b.date));
-    for (const p of fresh) {
-      const r = await this.handlePayment(p);
-      counts.autoMatched += r.auto ? 1 : 0;
-      counts.proposals += r.proposals;
-    }
+    await step({ key: 'match', label: 'Read notes and matched members', api: `AI: ${this.embedder.name === 'local-model' ? 'on-server language model' : 'hashed n-gram model'} + evidence matcher` }, async () => {
+      for (const p of fresh) {
+        const r = await this.handlePayment(p);
+        counts.autoMatched += r.auto ? 1 : 0;
+        counts.proposals += r.proposals;
+      }
+      const tally = {};
+      for (const p of fresh) if (p.intent) tally[p.intent.label] = (tally[p.intent.label] || 0) + 1;
+      const kinds = Object.entries(tally).map(([k, v]) => `${v} ${k}`).join(', ');
+      return { count: counts.autoMatched, detail: fresh.length ? `${kinds} · ${counts.autoMatched} booked automatically (≥ ${Math.round(s.autoApplyThreshold * 100)}%)` : 'Nothing new to match' };
+    });
 
-    counts.proposals += this.planReminders();
+    await step({ key: 'plan', label: 'Planned next steps', api: 'Needs your approval' }, async () => {
+      counts.proposals += this.planReminders();
+      const created = d.proposals.filter((p) => !before.has(p.id));
+      const by = (t) => created.filter((p) => p.type === t).length;
+      const parts = [[by('match') + by('review'), 'to check'], [by('refund'), 'refund(s)'], [by('reminder'), 'invoice(s) to send']].filter(([n]) => n).map(([n, l]) => `${n} ${l}`);
+      return { count: created.length, detail: parts.length ? parts.join(' · ') : 'Nothing needs you' };
+    });
     this.store.log('agent', `Agent run: ${counts.newPayments} new payment(s), ${counts.autoMatched} matched automatically, ${counts.proposals} new proposal(s)`);
     this.store.save();
     return counts;
@@ -124,9 +150,9 @@ export class TreasurerAgent {
       p.status = 'needs_review';
       proposals += this.propose({
         type: 'refund', paymentId: p.id, amount: p.amount, confidence: p.intent.score,
-        title: `Refund ${money(p.amount, p.currency)} from ${p.payerName}?`,
-        detail: `${p.payerName} is not a member and the note "${p.note}" looks like ${labelText(p.intent.label)}, not dues. Refund it, or reject to keep it as other club income.`,
-        message: `Hi ${first(p.payerName)}, we received ${money(p.amount, p.currency)} from you ("${p.note}") but couldn't place it. We've refunded it. If it was meant for ${s.clubName}, please get in touch. Thanks!`,
+        title: `Refund ${money(p.amount, p.currency)} to ${p.payerName}?`,
+        detail: `${p.payerName} isn't a member. Their note "${p.note}" looks like ${labelText(p.intent.label)}, not dues.`,
+        message: `Hi ${first(p.payerName)}, thanks for your ${money(p.amount, p.currency)} ("${p.note}"). It didn't match a ${s.clubName} membership, so we've sent it back. If it was meant for us, just reply and we'll sort it out.`,
       });
       return { auto: false, proposals };
     }
@@ -136,9 +162,9 @@ export class TreasurerAgent {
       const prev = d.payments.find((x) => x.status === 'matched' && x.allocations.some((a) => a.memberId === member.id));
       proposals += this.propose({
         type: 'refund', paymentId: p.id, memberId: member.id, amount: p.amount, confidence: match.confidence,
-        title: `Refund duplicate payment from ${member.name}`,
-        detail: `${member.name} already paid ${prev ? `${money(prev.amount, prev.currency)} on ${day(prev.date)}` : 'this period'}. This ${money(p.amount, p.currency)} on ${day(p.date)} looks like a second payment.`,
-        message: `Hi ${first(member.name)}, you paid your ${s.period} dues twice, so we've refunded ${money(p.amount, p.currency)}. Thanks for being so quick!`,
+        title: `Refund ${member.name}'s double payment (${money(p.amount, p.currency)})`,
+        detail: `${first(member.name)} already paid ${prev ? `${money(prev.amount, prev.currency)} on ${day(prev.date)}` : 'this season'}. This second payment on ${day(p.date)} looks like a repeat.`,
+        message: `Hi ${first(member.name)}, you paid your ${s.period} dues twice, so we've sent ${money(p.amount, p.currency)} back. Thanks for being so quick!`,
       });
       return { auto: false, proposals };
     }
@@ -155,8 +181,8 @@ export class TreasurerAgent {
       p.status = 'needs_review';
       proposals += this.propose({
         type: 'match', paymentId: p.id, memberId: member?.id, amount: p.amount, confidence: match.confidence,
-        title: `${p.payerName} → ${match.allocations.map((a) => a.memberName).join(' + ')}?`,
-        detail: `${money(p.amount, p.currency)} with note "${p.note || '(no note)'}". ${match.reasons.join('. ')}.`,
+        title: `Is ${p.payerName}'s ${money(p.amount, p.currency)} for ${listNames(match.allocations.map((a) => a.memberName))}?`,
+        detail: `The note says "${p.note || '(no note)'}". ${match.reasons.map((r) => r.replace(/ \(family member\?\)/, '')).join('. ')}.`,
       });
       return { auto: false, proposals };
     }
@@ -164,8 +190,8 @@ export class TreasurerAgent {
     p.status = 'needs_review';
     proposals += this.propose({
       type: 'review', paymentId: p.id, amount: p.amount, confidence: 1 - match.confidence,
-      title: `Who is ${money(p.amount, p.currency)} from ${p.payerName} for?`,
-      detail: `No member fits the note "${p.note || '(no note)'}". Assign it in the Payments tab, or approve to keep it as other income.`,
+      title: `Who is ${p.payerName}'s ${money(p.amount, p.currency)} for?`,
+      detail: `No member fits the note "${p.note || '(no note)'}". Pick the member yourself, or keep it as other club income.`,
     });
     return { auto: false, proposals };
   }
@@ -201,12 +227,12 @@ export class TreasurerAgent {
       const count = inv ? inv.reminders + 1 : 0;
       n += this.propose({
         type: 'reminder', memberId: m.id, amount: m.outstanding, invoiceId: inv?.id || null, confidence: 0.95,
-        title: inv ? `Send reminder ${count} to ${m.name}` : `Invoice ${m.name} for ${money(m.outstanding, s.currency)}`,
+        title: inv ? `Send ${m.name} reminder ${count}` : `Send ${m.name} a ${money(m.outstanding, s.currency)} dues invoice`,
         detail: inv
-          ? `PayPal invoice ${inv.id} is still ${inv.status}. Reminder ${count}, ${tone(count)} tone.`
+          ? `PayPal invoice ${inv.id} is still unpaid. Reminder ${count}, ${tone(count)} tone.`
           : m.status === 'partial'
-            ? `${m.name} paid ${money(m.paid, s.currency)} of ${money(m.dues, s.currency)}. Send a PayPal invoice for the rest.`
-            : `No payment from ${m.name} yet. Send a PayPal invoice for the ${s.period} dues.`,
+            ? `Paid ${money(m.paid, s.currency)} of ${money(m.dues, s.currency)}, so this invoice is for the remaining ${money(m.outstanding, s.currency)}.`
+            : `No payment yet. Dues are due ${day(s.dueDate)}.`,
         message: reminderText(m, s, count),
       });
     }
@@ -219,7 +245,7 @@ export class TreasurerAgent {
     if (d.proposals.some((x) => x.status === 'pending' && x.type === p.type && x.paymentId === (p.paymentId ?? null) && x.memberId === (p.memberId ?? null))) return 0;
     d.proposals.unshift({
       id: newId('p'), status: 'pending', paymentId: null, memberId: null, amount: null, message: null,
-      invoiceId: null, result: null, createdAt: this.now().toISOString(), decidedAt: null, ...p,
+      invoiceId: null, result: null, receipt: null, createdAt: this.now().toISOString(), decidedAt: null, ...p,
     });
     return 1;
   }
@@ -261,6 +287,7 @@ export class TreasurerAgent {
         pay.refunded = round2((pay.refunded || 0) + prop.amount);
         if (pay.refunded >= pay.amount) { pay.status = 'refunded'; pay.reviewed = true; pay.allocations = []; }
         prop.result = `PayPal refund ${r.id} ${r.status}`;
+        prop.receipt = { api: 'Payments v2 · captures/refund', id: r.id, status: r.status };
         this.store.log('paypal', `Refunded ${money(prop.amount, pay.currency)} to ${pay.payerName} (refund ${r.id})`);
       } else if (prop.type === 'reminder') {
         prop.result = await this.sendReminder(prop);
@@ -291,6 +318,7 @@ export class TreasurerAgent {
       inv.reminders = (inv.reminders || 0) + 1;
       inv.lastReminderAt = nowIso;
       this.store.log('paypal', `Sent reminder ${inv.reminders} for invoice ${inv.id} to ${m.name}`);
+      prop.receipt = { api: 'Invoicing v2 · remind', id: inv.id, status: 'SENT' };
       return `PayPal reminder sent for ${inv.id}`;
     }
     const created = await this.paypal.createAndSendInvoice({
@@ -299,6 +327,7 @@ export class TreasurerAgent {
     });
     d.invoices.push({ ...created, reminders: 0, sentAt: nowIso, lastReminderAt: null });
     this.store.log('paypal', `Sent PayPal invoice ${created.id} to ${m.name} (${money(prop.amount, s.currency)})`);
+    prop.receipt = { api: 'Invoicing v2 · create + send', id: created.id, status: created.status || 'SENT' };
     return `PayPal invoice ${created.id} sent`;
   }
 
@@ -351,7 +380,7 @@ function reminderText(m, s, count) {
   const name = first(m.name);
   const amount = money(m.outstanding, s.currency);
   if (count === 0) {
-    return `Hi ${name}! Quick one from ${s.clubName}: your ${s.period} dues of ${amount} are still open (due ${day(s.dueDate)}). You can pay straight from this PayPal invoice. Thanks!`;
+    return `Hi ${name}, a quick reminder from ${s.clubName}: your ${s.period} dues of ${amount} are due ${day(s.dueDate)}. You can pay straight from this invoice. Thanks!`;
   }
   if (count === 1) {
     return `Hi ${name}, a friendly nudge: the ${amount} for ${s.period} hasn't come in yet. The invoice link is below. If you've already paid, just reply and we'll sort it out.`;
@@ -359,7 +388,8 @@ function reminderText(m, s, count) {
   return `Hi ${name}, your ${s.period} dues of ${amount} are now overdue (reminder ${count}). Please pay this week, or talk to us if something's up. We'd rather find a solution than lose you.`;
 }
 
-const day = (iso) => new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' });
+const day = (iso) => new Date(iso).toLocaleDateString('en-US', { day: 'numeric', month: 'short', timeZone: 'UTC' });
+const listNames = (n) => (n.length <= 1 ? n.join('') : `${n.slice(0, -1).join(', ')} and ${n.at(-1)}`);
 const tone = (count) => (count <= 1 ? 'friendly' : 'firm');
 const first = (name) => String(name || '').split(' ')[0];
 const labelText = (l) => ({ event: 'an event payment', donation: 'a donation', other: 'something else' }[l] || l);

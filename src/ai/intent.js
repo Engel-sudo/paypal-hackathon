@@ -1,27 +1,27 @@
 // What is a payment for? Membership dues, an event, a donation, or something else.
-// Nearest-prototype classification over sentence embeddings, in German and English,
-// with keyword evidence on top so short notes ("beitrag") stay reliable.
+// Nearest-prototype classification over sentence embeddings, with keyword evidence on top
+// so short notes ("dues") stay reliable.
 import { cosine } from './embedder.js';
-import { tokens, fold } from '../util.js';
+import { tokens } from '../util.js';
 
 export const PROTOTYPES = {
   dues: [
-    'membership fee', 'membership dues for the semester', 'annual club membership', 'dues',
-    'Mitgliedsbeitrag', 'Beitrag Wintersemester', 'Vereinsbeitrag', 'Mitgliedschaft Jahresbeitrag',
+    'membership fee', 'membership dues for the season', 'annual club membership', 'dues',
+    'fall dues', 'spring membership', 'yearly membership renewal',
   ],
   event: [
     'ticket for the trip', 'bouldering trip on saturday', 'event registration', 'course fee for the workshop',
-    'Ausflug', 'Fahrt am Wochenende', 'Hüttenwochenende', 'Kursgebühr', 'Anmeldung Turnier',
+    'weekend camp', 'tournament entry', 'party ticket',
   ],
-  donation: ['donation for the club', 'gift', 'Spende für den Verein', 'Spende'],
-  other: ['refund please', 'test payment', 'Rückzahlung', 'wrong recipient sorry', 'Rechnung', 'equipment purchase'],
+  donation: ['donation for the club', 'gift', 'a small donation', 'contribution to the club fund'],
+  other: ['refund please', 'test payment', 'wrong recipient sorry', 'equipment purchase', 'sent by mistake'],
 };
 
 const KEYWORDS = {
-  dues: ['beitrag', 'mitgliedsbeitrag', 'kletterbeitrag', 'mitgliedschaft', 'membership', 'dues', 'fee', 'jahresbeitrag', 'semesterbeitrag', 'ws', 'ss', 'winter', 'invoice'],
-  event: ['trip', 'ausflug', 'fahrt', 'event', 'ticket', 'kurs', 'course', 'workshop', 'turnier', 'tournament', 'party', 'huette', 'camp'],
-  donation: ['spende', 'donation', 'gift', 'geschenk'],
-  other: ['test', 'refund', 'rueckzahlung', 'falsch', 'wrong'],
+  dues: ['dues', 'membership', 'member', 'fee', 'season', 'fall', 'spring', 'annual', 'yearly', 'renewal', 'invoice'],
+  event: ['event', 'trip', 'ticket', 'tickets', 'course', 'workshop', 'tournament', 'party', 'camp', 'registration'],
+  donation: ['donation', 'donate', 'gift'],
+  other: ['other', 'refund', 'test', 'wrong', 'mistake'],
 };
 
 export class IntentClassifier {
@@ -42,14 +42,14 @@ export class IntentClassifier {
   }
 
   async classify(note) {
-    const toks = new Set(tokens(note).map(fold));
+    const toks = new Set(tokens(note));
     if (toks.size === 0) return { label: 'dues', score: 0.5, evidence: 'empty note; most club payments are dues' };
     const protos = await this.protoVectors();
     const [v] = await this.embedder.embed([note]);
     const scores = {};
     for (const [label, vecs] of Object.entries(protos)) {
       const sim = Math.max(...vecs.map((p) => cosine(v, p)));
-      const kw = KEYWORDS[label].some((k) => toks.has(fold(k))) ? 0.35 : 0;
+      const kw = KEYWORDS[label].some((k) => toks.has(k)) ? 0.35 : 0;
       scores[label] = sim + kw;
     }
     const ranked = Object.entries(scores).sort((a, b) => b[1] - a[1]);

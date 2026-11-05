@@ -7,7 +7,7 @@ import { seedClub } from './seed.js';
 import { TreasurerAgent, httpError } from './agent.js';
 import { computeLedger } from './ledger.js';
 import { randomPayment } from './demo.js';
-import { newId, round2 } from './util.js';
+import { newId, round2, money } from './util.js';
 
 const PUBLIC = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'public');
 
@@ -156,8 +156,9 @@ export function createApp({ paypal, embedder, dataFile, adminToken, now } = {}) 
       payerEmail: b.payerEmail ?? base.payerEmail ?? '',
       amount: Number(b.amount || base.amount),
       note: b.note ?? base.note ?? '',
+      currency: store.data.settings.currency,
     });
-    store.log('paypal', `Incoming PayPal payment: ${tx.amount} EUR from ${tx.payerName} ("${tx.note}")`);
+    store.log('paypal', `Incoming PayPal payment: ${money(tx.amount, tx.currency)} from ${tx.payerName} ("${tx.note}")`);
     // Like a PayPal webhook would: sync and match right away.
     const counts = await agent.run();
     res.json({ ...state(), simulated: tx, lastRun: counts });

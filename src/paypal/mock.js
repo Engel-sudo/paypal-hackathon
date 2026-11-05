@@ -72,7 +72,7 @@ export class MockPayPal {
   }
 
   // ---- demo helpers (not part of the shared interface) ----
-  simulateIncoming({ payerName, payerEmail = '', amount, note, currency = 'EUR' }) {
+  simulateIncoming({ payerName, payerEmail = '', amount, note, currency = 'USD' }) {
     const tx = {
       id: pid('8MC'), date: new Date().toISOString(), payerName, payerEmail,
       amount: round2(amount), currency, note, status: 'COMPLETED',

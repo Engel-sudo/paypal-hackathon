@@ -25,17 +25,21 @@ test('first run matches the clear payments and proposes the rest', async () => {
   const r = await agent.run();
   assert.equal(r.newPayments, 10);
   assert.equal(r.autoMatched, 6);
-  assert.equal(member(d, 'Lena Hoffmann').status, 'paid');
-  assert.equal(member(d, 'Sophie Wagner').status, 'partial');
+  assert.equal(member(d, 'Lena Park').status, 'paid');
+  assert.equal(member(d, 'Sophie Ward').status, 'partial');
   assert.equal(pending(d, 'match').length, 2);
+  const matches = pending(d, 'match').map((p) => p.title).sort();
+  assert.deepEqual(matches, ["Is Andrea Smith's $30 for Paul Smith?", "Is Sarah Carter's $60 for Max Carter and Tom Carter?"]);
+  assert.ok(pending(d, 'match').find((p) => /Andrea/.test(p.title)).confidence < 0.8);
   const refunds = pending(d, 'refund');
   assert.equal(refunds.length, 2);
-  assert.ok(refunds.some((p) => /duplicate/i.test(p.title)));
+  assert.ok(refunds.some((p) => /double payment/i.test(p.title)));
   assert.ok(refunds.some((p) => /Mark Evans/.test(p.title)));
   // Members whose payment is waiting for review are not chased.
   const reminded = pending(d, 'reminder').map((p) => p.memberId);
   assert.ok(!reminded.includes('m02') && !reminded.includes('m05'));
-  assert.ok(reminded.includes('m06')); // Sophie's missing 5 EUR
+  assert.ok(reminded.includes('m06')); // Sophie's missing $5
+  assert.equal(pending(d, 'reminder').find((p) => p.memberId === 'm06').amount, 5);
 });
 
 test('a second run is idempotent', async () => {
@@ -50,24 +54,24 @@ test('a second run is idempotent', async () => {
 test('approving a split match pays both kids and learns the parent', async () => {
   const { d, agent } = setup();
   await agent.run();
-  const p = pending(d, 'match').find((x) => /Sabine/.test(x.title));
+  const p = pending(d, 'match').find((x) => /Sarah/.test(x.title));
   await agent.approve(p.id);
-  assert.equal(member(d, 'Max Becker').status, 'paid');
-  assert.equal(member(d, 'Tom Becker').status, 'paid');
-  assert.ok(d.members.find((m) => m.id === 'm02').payerAliases.some((a) => a.name === 'Sabine Becker'));
+  assert.equal(member(d, 'Max Carter').status, 'paid');
+  assert.equal(member(d, 'Tom Carter').status, 'paid');
+  assert.ok(d.members.find((m) => m.id === 'm02').payerAliases.some((a) => a.name === 'Sarah Carter'));
 });
 
 test('approving a refund calls PayPal and marks the payment refunded', async () => {
   const { d, agent, paypal } = setup();
   await agent.run();
-  const p = pending(d, 'refund').find((x) => /duplicate/i.test(x.title));
+  const p = pending(d, 'refund').find((x) => /double payment/i.test(x.title));
   const done = await agent.approve(p.id, { message: 'Sorry, refunded!' });
   assert.equal(done.status, 'done');
   assert.match(done.result, /PayPal refund RF/);
   assert.deepEqual(paypal.calls.at(-1).slice(0, 1), ['refundCapture']);
   assert.equal(paypal.refunds[0].note, 'Sorry, refunded!');
   assert.equal(d.payments.find((x) => x.id === p.paymentId).status, 'refunded');
-  assert.equal(member(d, 'Lena Hoffmann').status, 'paid');
+  assert.equal(member(d, 'Lena Park').status, 'paid');
 });
 
 test('rejecting the stranger refund keeps it as other income', async () => {
@@ -97,9 +101,9 @@ test('reminder sends an invoice, paying it marks the member paid, next reminder 
   await agent.approve(second.id);
   assert.equal(inv.reminders, 1);
 
-  paypal.simulatePayInvoice(inv.id, { name: 'Noah Richter' });
+  paypal.simulatePayInvoice(inv.id, { name: 'Noah Brooks' });
   await agent.run();
-  assert.equal(member(d, 'Noah Richter').status, 'paid');
+  assert.equal(member(d, 'Noah Brooks').status, 'paid');
   assert.equal(d.payments.filter((x) => x.invoiceId === inv.id).length, 1);
 });
 
@@ -119,16 +123,31 @@ test('manual assign resolves pending proposals and validates amounts', async () 
   const p = pending(d, 'match').find((x) => /Andrea/.test(x.title));
   assert.throws(() => agent.assign(p.paymentId, [{ memberId: 'm05', amount: 999 }]), /exceed/);
   agent.assign(p.paymentId, [{ memberId: 'm05', amount: 30 }]);
-  assert.equal(member(d, 'Paul Schmidt').status, 'paid');
+  assert.equal(member(d, 'Paul Smith').status, 'paid');
   assert.equal(d.proposals.find((x) => x.id === p.id).status, 'rejected');
 });
 
 test('overpayment gets matched and the surplus refund proposed', async () => {
   const { d, agent, paypal } = setup();
   paypal.reset(false);
-  paypal.simulateIncoming({ payerName: 'Noah Richter', payerEmail: 'noah.richter@example.com', amount: 50, note: 'Beitrag Noah' });
+  paypal.simulateIncoming({ payerName: 'Noah Brooks', payerEmail: 'noah.brooks@example.com', amount: 50, note: 'dues Noah' });
   await agent.run();
-  assert.equal(member(d, 'Noah Richter').status, 'paid');
+  assert.equal(member(d, 'Noah Brooks').status, 'paid');
   const r = pending(d, 'refund')[0];
   assert.equal(r.amount, 20);
+  assert.equal(r.title, 'Refund $20 overpayment to Noah Brooks');
+});
+
+test('agent run reports its steps and approvals carry PayPal receipts', async () => {
+  const { d, agent } = setup();
+  const r = await agent.run();
+  assert.deepEqual(r.steps.map((s) => s.key), ['invoices', 'transactions', 'match', 'plan']);
+  assert.equal(r.steps[1].count, 10);
+  assert.match(r.steps[2].detail, /6 booked automatically/);
+  const refund = pending(d, 'refund')[0];
+  await agent.approve(refund.id);
+  assert.match(refund.receipt.api, /Payments v2/);
+  const rem = pending(d, 'reminder')[0];
+  await agent.approve(rem.id);
+  assert.match(rem.receipt.id, /^INV2-/);
 });

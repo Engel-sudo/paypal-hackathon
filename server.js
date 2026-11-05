@@ -16,5 +16,5 @@ const { app } = createApp({ paypal, embedder, dataFile: path.join(dataDir, 'club
 
 const port = Number(env.PORT) || 3000;
 app.listen(port, () => {
-  console.log(`Club treasurer running on http://localhost:${port} (PayPal: ${paypal.kind}, AI: ${embedder.status === 'off' ? 'hashed n-grams' : `${embedder.model}, loading`})`);
+  console.log(`Clubkeep running on http://localhost:${port} (PayPal: ${paypal.kind}, AI: ${embedder.status === 'off' ? 'hashed n-grams' : `${embedder.model}, loading`})`);
 });

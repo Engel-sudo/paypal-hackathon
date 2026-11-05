@@ -1,12 +1,12 @@
 // Sentence embeddings without a paid API.
 //
-// LocalEmbedder runs a multilingual sentence-transformer on the server's CPU through
-// transformers.js (ONNX runtime). The model (~120 MB, quantized) downloads once from the
+// LocalEmbedder runs an English sentence-transformer on the server's CPU through
+// transformers.js (ONNX runtime). The model (~23 MB, quantized) downloads once from the
 // Hugging Face hub and is cached. HashedEmbedder is a deterministic hashed character-n-gram
 // embedding used for tests, offline runs, and while the model is still loading.
 import { normalize } from '../util.js';
 
-export const DEFAULT_MODEL = 'Xenova/paraphrase-multilingual-MiniLM-L12-v2';
+export const DEFAULT_MODEL = 'Xenova/all-MiniLM-L6-v2';
 
 export class HashedEmbedder {
   constructor(dims = 512) {

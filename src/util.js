@@ -6,20 +6,18 @@ export function newId(prefix) {
   return `${prefix}_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`;
 }
 
-// Lowercase, fold German umlauts and other accents, keep letters/digits/spaces.
+// Letters that Unicode NFD does not split into base letter + accent.
+const SPECIAL = { ß: 'ss', æ: 'ae', œ: 'oe', ø: 'o', ł: 'l', đ: 'd', ð: 'd', þ: 'th', ı: 'i' };
+
+// Lowercase, strip accents (NFD), keep letters/digits/spaces. "Yılmaz" -> "yilmaz", "Zoë" -> "zoe".
 export function normalize(text) {
   return String(text ?? '')
     .toLowerCase()
-    .replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss')
-    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .replace(/[ßæœøłđðþı]/g, (c) => SPECIAL[c])
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
     .replace(/[^a-z0-9@.\s]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
-}
-
-// Also fold "ae" -> "a" etc. so "Krueger", "Krüger" and "Kruger" compare equal.
-export function fold(token) {
-  return token.replace(/ae/g, 'a').replace(/oe/g, 'o').replace(/ue/g, 'u');
 }
 
 // Words of a text. Dots are kept only inside email addresses ("J." -> "j").
@@ -47,6 +45,9 @@ export function editDistance(a, b) {
   return d[m][n];
 }
 
-export function money(amount, currency = 'EUR') {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount);
+// "$30", "$12.50". Whole amounts drop the cents.
+export function money(amount, currency = 'USD') {
+  const n = Number(amount);
+  const digits = Number.isInteger(n) ? 0 : 2;
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency, minimumFractionDigits: digits, maximumFractionDigits: 2 }).format(n);
 }

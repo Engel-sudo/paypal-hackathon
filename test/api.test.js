@@ -27,7 +27,7 @@ test('state, agent run, approve, export', async (t) => {
 
   r = await s.call('POST', '/api/agent/run');
   assert.equal(r.body.lastRun.autoMatched, 6);
-  const refund = r.body.proposals.find((p) => p.type === 'refund' && /duplicate/i.test(p.title));
+  const refund = r.body.proposals.find((p) => p.type === 'refund' && /double payment/i.test(p.title));
   r = await s.call('POST', `/api/proposals/${refund.id}/approve`, { message: 'edited' });
   assert.equal(r.body.proposals.find((p) => p.id === refund.id).status, 'done');
 
@@ -41,7 +41,7 @@ test('state, agent run, approve, export', async (t) => {
 
   r = await s.call('GET', '/api/export.csv');
   assert.match(r.body, /Name,Email,Dues/);
-  assert.match(r.body, /Lena Hoffmann/);
+  assert.match(r.body, /Lena Park/);
 });
 
 test('simulate payment, members CRUD, validation', async (t) => {

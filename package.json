@@ -1,7 +1,7 @@
 {
-  "name": "club-treasurer",
+  "name": "clubkeep",
   "version": "1.0.0",
-  "description": "AI club treasurer assistant: matches PayPal payments to members, sends reminders via PayPal Invoicing, handles refunds.",
+  "description": "Clubkeep, the AI treasurer for clubs: matches PayPal payments to members, sends reminders via PayPal Invoicing, handles refunds.",
   "type": "module",
   "main": "server.js",
   "engines": {

@@ -21,7 +21,7 @@ const BASE = `http://127.0.0.1:${PORT}`;
 const W = 1536, H = 864; // recorded at the viewport size, upscaled to 1080p by ffmpeg
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'kassenwart-video-'));
+const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'clubkeep-video-'));
 const server = spawn(process.execPath, ['server.js'], {
   cwd: ROOT,
   env: { ...process.env, PORT: String(PORT), DATA_DIR: dataDir, AI_MODE: process.env.AI_MODE || 'hashed', PAYPAL_CLIENT_ID: '', PAYPAL_CLIENT_SECRET: '', ADMIN_TOKEN: '' },
@@ -106,18 +106,18 @@ await page.waitForSelector('#members-grid .ag-row', { timeout: 20000 });
 await overlays();
 
 const notes = [
-  ['Sabine Becker', 'für max & tom beitrag winter', '60 €'],
-  ['F. Wagner', '🧗 dues - Fabi', '30 €'],
-  ['Lena Hoffmann', 'Beitrag', '30 € (again)'],
-  ['Andrea Schmidt', 'Mitgliedsbeitrag', '30 €'],
-  ['Mark Evans', 'for the bouldering trip saturday', '15 €'],
+  ['Sarah Carter', 'for max & tom membership', '$60'],
+  ['F. Ward', '🧗 dues - Fabi', '$30'],
+  ['Lena Park', 'dues', '$30 (again)'],
+  ['Andrea Smith', 'membership fee', '$30'],
+  ['Mark Evans', 'for the bouldering trip saturday', '$15'],
 ];
-await card(`<h1>Kassenwart</h1><p>The AI treasurer for clubs that get paid on PayPal</p>`, 3500);
-await card(`<p style="font-size:34px;font-weight:700">A club's PayPal inbox at the start of the semester</p>
+await card(`<h1>Clubkeep</h1><p>The AI treasurer for clubs</p>`, 3500);
+await card(`<p style="font-size:34px;font-weight:700">A club's PayPal inbox at the start of the season</p>
   <div class="notes">${notes.map(([who, n, a]) => `<div class="note"><span>${who}</span><code>${n}</code><b>${a}</b></div>`).join('')}</div>`, 11000);
 await card(`<p style="font-size:34px;font-weight:700">Who paid for whom?</p>
-  <p>Every sports club, student club and Verein has a volunteer treasurer who works this out by hand, in a spreadsheet, every semester.</p>
-  <p style="margin-top:24px">Kassenwart does it for them, with PayPal and a free AI model.</p>`, 9000);
+  <p>Every sports club, student club and community group has a volunteer treasurer who works this out by hand, in a spreadsheet, every season.</p>
+  <p style="margin-top:24px">Clubkeep does it for them, with PayPal and a free AI model.</p>`, 9000);
 
 await caption('14 members, nobody marked as paid yet');
 await focus(page.locator('#members-grid'), 3000);
@@ -128,8 +128,8 @@ await focus(page.locator('#members-grid'), 3500);
 
 await tab('payments');
 await caption('Every match comes with reasons and a confidence score');
-const sabine = page.locator('#payments-grid .ag-row', { hasText: 'Sabine' }).first();
-await click(sabine, 1200);
+const sarah = page.locator('#payments-grid .ag-row', { hasText: 'Sarah' }).first();
+await click(sarah, 1200);
 await sleep(5000);
 await page.keyboard.press('Escape').catch(() => {});
 await page.locator('.panel-close, [data-close], .side-panel .close').first().click({ timeout: 1000 }).catch(() => {});
@@ -144,17 +144,17 @@ await tab('inbox');
 await caption('Anything the AI isn\'t sure about, or that moves money, waits for one click');
 await sleep(3500);
 for (const [type, text, line] of [
-  ['match', 'Sabine', 'Mother pays 60 € for two kids: split between Max and Tom'],
+  ['match', 'Sarah', 'A parent pays $60 for two kids: split between Max and Tom'],
   ['refund', 'duplicate', 'Lena paid twice: refund the second payment'],
   ['refund', 'Mark Evans', 'Not a member, paid for a trip: refund or keep'],
-  ['reminder', 'Sophie', 'Sophie is 5 € short: invoice her for the rest'],
+  ['reminder', 'Sophie', 'Sophie is $5 short: invoice her for the rest'],
 ]) {
   await caption(line);
   await focus(page.locator(`[data-proposal-type="${type}"]`, { hasText: text }).first(), 3500);
 }
 
 await caption('Approve the split payment');
-await click(page.locator('[data-proposal-type="match"]', { hasText: 'Sabine' }).first().locator('.approve'), 2000);
+await click(page.locator('[data-proposal-type="match"]', { hasText: 'Sarah' }).first().locator('.approve'), 2000);
 await caption('Approve the refund: issued through the PayPal Payments API');
 await click(page.locator('[data-proposal-type="refund"]', { hasText: 'duplicate' }).first().locator('.approve'), 3500);
 
@@ -188,7 +188,8 @@ await sleep(4000);
 await tab('members');
 await caption('');
 
-await card(`<h1>Kassenwart</h1>
+await card(`<h1>Clubkeep</h1>
+  <p>The AI treasurer for clubs</p>
   <p>Free local AI · PayPal Transaction Search, Invoicing &amp; Refunds · AG Grid</p>
   <p style="margin-top:24px">Open source (MIT) · Deploys on Render</p>`, 5000);
 

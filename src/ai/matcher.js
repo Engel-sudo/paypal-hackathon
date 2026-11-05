@@ -4,18 +4,20 @@
 // earlier payments by the same payer, amount fit) gives a probability that the payment
 // belongs to a member. Evidence is combined with a noisy-OR, so independent weak hints add up
 // and one strong hint is enough. Every hint carries a human-readable reason, which the UI shows.
-import { tokens, fold, editDistance, round2, normalize } from '../util.js';
+import { tokens, editDistance, round2, normalize, money } from '../util.js';
 
-const STOP = new Set(['fuer', 'for', 'und', 'and', 'von', 'the', 'beitrag', 'dues', 'membership', 'mitgliedsbeitrag',
-  'winter', 'sommer', 'ws', 'ss', 'semester', 'club', 'verein', 'fee', 'invoice', 'payment', 'zahlung', 'danke', 'thanks']);
+// Words in payment notes that never refer to a person.
+const STOP = new Set(['for', 'and', 'from', 'the', 'my', 'our', 'of', 'to', 'dues', 'membership', 'member', 'fee', 'fees',
+  'annual', 'yearly', 'season', 'fall', 'autumn', 'spring', 'summer', 'winter', 'semester', 'term', 'year',
+  'club', 'climbing', 'invoice', 'payment', 'pay', 'paid', 'thanks', 'thank', 'you']);
 
 function nameParts(member) {
-  const parts = tokens(member.name).map(fold);
+  const parts = tokens(member.name);
   return {
     first: parts[0] || '',
     last: parts[parts.length - 1] || '',
     all: parts,
-    nicks: (member.nicknames || []).map((n) => fold(normalize(n))).filter(Boolean),
+    nicks: (member.nicknames || []).map((n) => normalize(n)).filter(Boolean),
     email: normalize(member.email),
   };
 }
@@ -38,8 +40,8 @@ const noisyOr = (ps) => 1 - ps.reduce((acc, p) => acc * (1 - p), 1);
 
 export function scoreMember(payment, member, ctx = {}) {
   const np = nameParts(member);
-  const noteToks = tokens(payment.note).map(fold).filter((t) => !STOP.has(t));
-  const payerToks = tokens(payment.payerName).map(fold);
+  const noteToks = tokens(payment.note).filter((t) => !STOP.has(t));
+  const payerToks = tokens(payment.payerName);
   const payerEmail = normalize(payment.payerEmail);
   const ev = []; // { p, reason, inNote }
 
@@ -47,7 +49,7 @@ export function scoreMember(payment, member, ctx = {}) {
     ev.push({ p: 0.75, reason: `Payer email ${payment.payerEmail} is ${member.name}'s email` });
   }
   const alias = (member.payerAliases || []).find((a) =>
-    (a.email && normalize(a.email) === payerEmail) || (a.name && fold(normalize(a.name)) === payerToks.join(' ')));
+    (a.email && normalize(a.email) === payerEmail) || (a.name && normalize(a.name) === payerToks.join(' ')));
   if (alias) ev.push({ p: 0.7, reason: `${payment.payerName} paid for ${member.name} before (learned)` });
 
   // Names in the note.
@@ -90,6 +92,7 @@ export function scoreMember(payment, member, ctx = {}) {
 
 // ctx.outstanding: Map memberId -> amount still owed this period.
 export function matchPayment(payment, members, ctx = {}) {
+  const fmt = (n) => money(n, payment.currency);
   const outstanding = ctx.outstanding || new Map();
   const owed = (m) => (outstanding.has(m.id) ? outstanding.get(m.id) : m.dues);
   const scored = members.map((m) => scoreMember(payment, m, ctx)).filter((s) => s.score >= 0.2).sort((a, b) => b.score - a.score);
@@ -153,4 +156,3 @@ export function matchPayment(payment, members, ctx = {}) {
 }
 
 const alt = (s) => ({ memberId: s.member.id, memberName: s.member.name, score: round2(s.score) });
-const fmt = (n) => `${Number(n).toFixed(2).replace(/\.00$/, '')} EUR`;

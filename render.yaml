@@ -1,7 +1,7 @@
 # Render Blueprint: New > Blueprint, point it at this repo.
 services:
   - type: web
-    name: kassenwart
+    name: clubkeep
     runtime: node
     plan: free
     buildCommand: npm ci --omit=dev
@@ -13,9 +13,9 @@ services:
       - key: AI_MODE
         value: local
       - key: EMBED_MODEL
-        value: Xenova/paraphrase-multilingual-MiniLM-L12-v2
+        value: Xenova/all-MiniLM-L6-v2
       - key: DATA_DIR
-        value: /tmp/kassenwart
+        value: /tmp/clubkeep
       # Set these in the Render dashboard to switch from the mock to the PayPal sandbox.
       - key: PAYPAL_CLIENT_ID
         sync: false

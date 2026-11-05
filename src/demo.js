@@ -1,5 +1,7 @@
 // Random messy payments for the demo button: the kinds of notes treasurers actually get.
-const PARENTS = ['Andrea', 'Thomas', 'Claudia', 'Michael', 'Petra', 'Stefan'];
+import { normalize } from './util.js';
+
+const PARENTS = ['Andrea', 'Thomas', 'Claire', 'Michael', 'Priya', 'Daniel'];
 
 export function randomPayment(members, ledger, rnd = Math.random) {
   const pick = (a) => a[Math.floor(rnd() * a.length)];
@@ -9,17 +11,17 @@ export function randomPayment(members, ledger, rnd = Math.random) {
   const last = rest.join(' ');
   const nick = m.nicknames?.[0] || firstName;
   const notes = [
-    `beitrag ${nick.toLowerCase()}`,
-    `Mitgliedschaft ${firstName} ${last[0]}.`,
+    `dues ${nick.toLowerCase()}`,
+    `membership ${firstName} ${last[0]}.`,
     `dues for ${firstName}`,
-    `${firstName} WS26`,
-    `Vereinsbeitrag ${last}`,
-    `für ${nick} 🙂`,
+    `${firstName} fall dues`,
+    `club membership ${last}`,
+    `for ${nick} 🙂`,
   ];
   const byParent = rnd() < 0.35;
   return {
     payerName: byParent ? `${pick(PARENTS)} ${last}` : `${firstName[0]}. ${last}`,
-    payerEmail: byParent ? `${last.toLowerCase().replace(/[^a-z]/g, '')}.family@example.com` : '',
+    payerEmail: byParent ? `${normalize(last).replace(/[^a-z]/g, '')}.family@example.com` : '',
     amount: m.outstanding || m.dues,
     note: pick(notes),
   };
