@@ -1193,7 +1193,7 @@
       announce(n
         ? `Found ${plural(n, 'new payment')}. ${a} matched to members; ${Math.max(0, n - a)} need you.`
         : `No new payments. ${pending ? `${plural(pending, 'thing')} still ${pending === 1 ? 'needs' : 'need'} your OK.` : 'Everything is sorted.'}`);
-      setTimeout(() => { if (ui.run && ui.run.phase === 'done' && !ui.run.userToggled) { ui.run.collapsed = true; renderTimeline(); } }, reduceMotion() ? 0 : 2600);
+      setTimeout(() => { if (ui.run && ui.run.phase === 'done' && !ui.run.userToggled && !document.documentElement.classList.contains('demo')) { ui.run.collapsed = true; renderTimeline(); } }, reduceMotion() ? 0 : 2600);
     } catch (e) {
       ui.run = { ...(ui.run || {}), phase: 'error', error: e.message };
       renderTimeline();

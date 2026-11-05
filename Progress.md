@@ -38,3 +38,21 @@ Not verified here (blocked network in the build sandbox):
 - Record the voiceover from docs/VIDEO_SCRIPT.md over video/demo.mp4, add the sandbox dashboard shot, upload to YouTube.
 - Talk to 2 to 3 real treasurers; put their real quotes into the README/PITCH TODOs.
 - Register on Devpost, paste docs/DEVPOST.md, submit by Nov 10.
+
+## 2026-11-05 (later): English-only, redesign, narrated video
+- Renamed to **Clubkeep**. Removed all German content: demo club is "Riverside Climbing Club" in USD with English notes;
+  intent prototypes English; default model switched to `Xenova/all-MiniLM-L6-v2` (smaller, fits Render free).
+- Design: three critique agents (fintech visual, UX/copy, judge + accessibility) → one brief → redesign agent.
+  "Club ledger" identity (warm paper, ink, green for money landed, yellow highlighter for agent notes), self-hosted
+  Geist / Geist Mono / Instrument Serif, inbox-first flow with first-run state, live agent-run timeline
+  (`lastRun.steps`), PayPal receipt chips (`proposal.receipt`), batched invoice card, refund confirm step,
+  AG Grid flash cells + pinned totals + tooltips + saved column state, WCAG fixes, `?demo=1` presentation zoom.
+- Video: narrated with Kokoro-82M TTS (offline, Apache-2.0) from `video/narration.json` (`video/narrate.py`);
+  `video/record.mjs` syncs each scene to its voice line and mixes the voice in. 1:44, 1080p, loudness-normalized.
+- 30 tests green.
+
+## Next
+- Deploy on Render; set PayPal sandbox keys; check the MiniLM model loads and memory is OK.
+- Optional: add a sandbox-dashboard shot (refund + invoices) to the video.
+- Upload the video to YouTube; fill the hosted URL / YouTube TODOs.
+- Real treasurer quotes for the TODO slots; submit on Devpost by Nov 10.

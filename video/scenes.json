@@ -1,0 +1,50 @@
+[
+ {
+  "id": "cold",
+  "start": 240
+ },
+ {
+  "id": "problem",
+  "start": 5538
+ },
+ {
+  "id": "intro",
+  "start": 21160
+ },
+ {
+  "id": "start",
+  "start": 33437
+ },
+ {
+  "id": "run",
+  "start": 39522
+ },
+ {
+  "id": "reasons",
+  "start": 48267
+ },
+ {
+  "id": "inbox",
+  "start": 58020
+ },
+ {
+  "id": "approve",
+  "start": 69941
+ },
+ {
+  "id": "remind",
+  "start": 78047
+ },
+ {
+  "id": "paid",
+  "start": 84832
+ },
+ {
+  "id": "history",
+  "start": 91961
+ },
+ {
+  "id": "close",
+  "start": 95985
+ }
+]
