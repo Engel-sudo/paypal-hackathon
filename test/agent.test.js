@@ -130,7 +130,7 @@ test('manual assign resolves pending proposals and validates amounts', async () 
 test('overpayment gets matched and the surplus refund proposed', async () => {
   const { d, agent, paypal } = setup();
   paypal.reset(false);
-  paypal.simulateIncoming({ payerName: 'Noah Brooks', payerEmail: 'noah.brooks@example.com', amount: 50, note: 'dues Noah' });
+  paypal.simulateIncoming({ payerName: 'Noah Brooks', payerEmail: 'noah.brooks@example.com', amount: 50, note: 'dues Noah' , date: '2026-11-01T10:00:00Z' });
   await agent.run();
   assert.equal(member(d, 'Noah Brooks').status, 'paid');
   const r = pending(d, 'refund')[0];
