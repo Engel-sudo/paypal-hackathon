@@ -1,7 +1,7 @@
 # Devpost submission text
 
-Copy each section into the matching Devpost field. Items marked TODO need to be filled in or removed
-before submitting.
+Copy each section into the matching Devpost field. The steps before that (public repo, YouTube upload,
+optional hosting) are in [`SUBMIT.md`](SUBMIT.md).
 
 **Project name:** Clubkeep
 
@@ -19,8 +19,6 @@ and an evening gone.
 Sports clubs, student clubs, choirs and community groups run on volunteers, and the treasurer job changes
 hands every year or two. We wanted the boring part to go away without handing member data to a paid AI
 service the club would never pay for anyway.
-
-> [TODO: if you talked to a real treasurer, add one sentence about what they told you. Do not invent it.]
 
 ## What it does
 
@@ -66,8 +64,9 @@ same buttons hit the PayPal sandbox.
   a review queue and an activity log.
 - **Deploy:** Render free tier via `render.yaml`.
 - **Tests:** `node:test` with a fake embedder and the mock PayPal client.
-- **Demo video:** recorded automatically with Playwright, captioned, with an AI-generated narration made with
-  Kokoro-82M, an open-source (Apache-2.0) text-to-speech model run offline through `kokoro-onnx`.
+- **Demo video:** recorded from the running app with Playwright, with the picture timed to each sentence of
+  the narration. The voice is AI-generated with Kokoro-82M, an open-source (Apache-2.0) text-to-speech model
+  run offline through `kokoro-onnx`.
 
 ## Challenges we ran into
 
@@ -84,8 +83,6 @@ same buttons hit the PayPal sandbox.
 - **Free AI that's good enough, on a free server.** No paid API was a hard constraint, and the model has to
   fit next to the app in 512 MB. A small embedding model alone isn't enough for names and nicknames, so the
   scoring engine does the precise work and the model handles the fuzzy language.
-
-**[TODO: add any challenge that actually happened during the build, e.g. a specific PayPal API surprise.]**
 
 ## Accomplishments that we're proud of
 
@@ -135,16 +132,20 @@ same buttons hit the PayPal sandbox.
 > **Demo video.** The narration is a synthetic voiceover generated with Kokoro-82M, an open-source text-to-speech model, from our
 > script.
 >
-> **Development tools.** [TODO: list the AI coding assistants used during development, e.g. which
-> assistant and for what, so the Tools section is complete and accurate.]
+> **Development tools.** Claude Code (Anthropic's AI coding assistant) wrote most of the code, tests and
+> documentation under our direction, reviewed the design, and built the pipeline that records the demo
+> video. Claude is not used by the app at runtime.
 
 ## Links
 
-- Demo: `https://clubkeep.onrender.com` [TODO: confirm]
-- Video: [TODO: YouTube link]
-- Code: [TODO: GitHub URL, with the MIT license visible in About]
+- Code: https://github.com/Engel-sudo/paypal-hackathon (MIT; must be public before you submit)
+- Video: the YouTube link from `SUBMIT.md` step 2
+- Demo: your Render URL if you deploy (`SUBMIT.md` step 3); otherwise leave this out, the README's
+  three-command local run is the testing path
 
-## Sandbox logins for judges (optional)
+## Testing instructions (for the Devpost field)
 
-[TODO: if you configure the hosted demo against the sandbox, decide whether to share a sandbox
-personal-account login so judges can send a test payment. Never share real credentials.]
+Node 20 or newer. `npm install`, `npm start`, open http://localhost:3000 and click **Check PayPal
+payments**. No accounts or keys are needed: without PayPal keys the app runs the same code against a
+built-in mock PayPal account seeded with a fictional club. To run it against the PayPal sandbox, set
+`PAYPAL_CLIENT_ID` and `PAYPAL_CLIENT_SECRET` (README, "Sandbox setup").

@@ -10,7 +10,8 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "test": "node --test test/*.test.js"
+    "test": "node --test test/*.test.js",
+    "sandbox:check": "node scripts/sandbox-check.mjs"
   },
   "license": "MIT",
   "dependencies": {

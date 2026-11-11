@@ -3,6 +3,8 @@ import { createApp } from './src/app.js';
 import { createPayPal } from './src/paypal/index.js';
 import { AutoEmbedder } from './src/ai/embedder.js';
 
+// Keys can live in a .env file next to this one (see .env.example); real environment variables win.
+try { process.loadEnvFile?.(); } catch { /* no .env file */ }
 const env = process.env;
 const dataDir = env.DATA_DIR || path.resolve('data');
 const embedder = new AutoEmbedder({

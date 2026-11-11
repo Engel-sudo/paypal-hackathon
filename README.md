@@ -18,14 +18,12 @@ treasurer's one-click approval. The AI runs on the club's own server, no paid AI
 |---|---|
 | ![Members grid](docs/img/members.png) | ![Payment panel with AI reasoning](docs/img/payment-panel.png) |
 
-Demo video (narrated, with captions): [`video/demo.mp4`](video/demo.mp4), recorded with `video/record.mjs`.
+Demo video (2 minutes, narrated, with subtitles): [`video/demo.mp4`](video/demo.mp4). It is generated from the
+running app by `video/record.mjs`; the script is in [`docs/VIDEO_SCRIPT.md`](docs/VIDEO_SCRIPT.md).
 
 ## Try it
 
-**Hosted demo:** `https://clubkeep.onrender.com` **[TODO: confirm URL after first Render deploy]**
-(Render free tier: the first request after idle can take ~30-60 s while the instance wakes up.)
-
-**Run locally** (Node 20+):
+**Run locally** (Node 20+, no accounts or keys needed):
 
 ```bash
 npm install
@@ -33,9 +31,12 @@ npm start
 # open http://localhost:3000
 ```
 
-With no environment variables set, the app runs against a mock PayPal client and the hashed
-n-gram embedder, so the full demo works offline and without accounts. Click **Run treasurer
-agent** to start.
+With no environment variables set, the app runs against a mock PayPal client and the
+on-server AI model (downloaded once, about 23 MB; a built-in fallback matcher is used until it has
+loaded), so the full demo works without accounts. Click **Check PayPal payments** to start.
+
+**Host it yourself:** the repo has a Render blueprint, see [Deploy on Render](#deploy-on-render). On the
+free tier the first request after idle takes 30 to 60 seconds while the instance wakes up.
 
 **Tests:**
 
@@ -51,7 +52,7 @@ The demo club is the fictional **Riverside Climbing Club**: 14 members, dues of 
 season ($15 student rate for one member), $405 expected in total, and 10 PayPal payments with
 realistic messy notes.
 
-1. **Run treasurer agent**: the 10 payments sync from PayPal and 6 are matched automatically, each
+1. **Check PayPal payments**: the 10 payments sync from PayPal and 6 are matched automatically, each
    with its reasons: a nickname ("🧗 dues - Fabi" is Fabian Ward), initials ("membership jonas k"),
    a payer email, a typo ("Leoni" is Leonie Fischer).
 2. Open the review queue. Two match proposals: Sarah Carter's $60 "for max & tom membership" split
@@ -60,7 +61,7 @@ realistic messy notes.
    Mark Evans' $15 "for the bouldering trip saturday" (not a member, not dues). Six invoice reminders,
    including one for the $5 Sophie Ward still owes after paying $25.
 3. Approve the refunds: PayPal refunds are issued. Approve the reminders: PayPal invoices are created and sent.
-4. **Simulate invoice payment** (demo button): the member's row flips to *Paid*.
+4. **Member pays** (demo button on a member's invoice): the member's row flips to *Paid*.
 5. Export the member list as CSV.
 
 ---
@@ -138,8 +139,6 @@ What changes for them:
 - member data stays on the club's own server in a JSON file, and no third-party AI service sees it,
   which matters for privacy-minded clubs.
 
-> [TODO: add a quote from a real treasurer you talked to, with their permission. Do not invent one.]
-
 ## 4. Innovation
 
 Payment reconciliation exists in accounting software, and club-management tools exist, but they
@@ -157,13 +156,14 @@ initials, typos, one payment for several people, parents paying for children. Wh
 
 ## 5. Presentation
 
-- Demo video (under 3 minutes): **[TODO: YouTube link]**. It is narrated with an AI-generated
-  voiceover (Kokoro-82M, a free open-source text-to-speech model run locally) and has captions. The narration script is
-  [`docs/VIDEO_SCRIPT.md`](docs/VIDEO_SCRIPT.md). **[TODO: optional shot of the refund and invoices in
-  the PayPal sandbox dashboard, once sandbox keys are set.]**
+- Demo video (2 minutes): [`video/demo.mp4`](video/demo.mp4), also linked on the Devpost page. It follows one
+  treasurer through one season's dues, from the messy PayPal inbox to everyone paid, and names the PayPal
+  endpoint behind each step as it happens. The narration is an AI-generated voiceover (Kokoro-82M, a free
+  open-source text-to-speech model run locally); subtitles are burned in and also in
+  [`video/demo.srt`](video/demo.srt). Script: [`docs/VIDEO_SCRIPT.md`](docs/VIDEO_SCRIPT.md).
 - Pitch: [`docs/PITCH.md`](docs/PITCH.md). Devpost text: [`docs/DEVPOST.md`](docs/DEVPOST.md).
 - API contract between backend and frontend: [`docs/API.md`](docs/API.md).
-- The hosted demo is seeded with a fictional club so judges can click through the whole flow without accounts.
+- The demo is seeded with a fictional club, so judges can click through the whole flow without accounts.
 
 ---
 
@@ -192,15 +192,16 @@ All calls go to `https://api-m.sandbox.paypal.com` for this entry.
 | Scoring engine (our code, `src/ai/matcher.js`) | Combines embedding similarity with name/nickname matches (typo-tolerant), initials, payer email, shared surname, and amount arithmetic into a confidence score with reasons and alternatives; decides splits across members |
 | Hashed character n-gram embedder (our code) | Fallback when the model can't be downloaded or `AI_MODE=hashed`; also used by the tests for deterministic, offline runs |
 | Treasurer agent (our code, `src/agent.js`) | Sync -> match -> auto-apply above threshold -> propose refunds/reminders -> execute approved PayPal actions |
-| Text-to-speech tool (demo video only) | The video's narration is a synthetic voice: [Kokoro-82M](https://github.com/thewh1teagle/kokoro-onnx) (Apache-2.0, runs offline via `kokoro-onnx`), voice `af_heart`, generated from `video/narration.json` |
+| Text-to-speech tool (demo video only) | The video's narration is a synthetic voice: [Kokoro-82M](https://github.com/thewh1teagle/kokoro-onnx) (Apache-2.0, runs offline via `kokoro-onnx`), generated from `video/narration.json` by `video/narrate.py` |
 
 No paid or hosted AI API is used. The quantized model (about 23 MB) is downloaded from the Hugging Face
 Hub on first use and cached. It was chosen to fit comfortably in the 512 MB of Render's free instance.
 Until it has loaded (or if it can't load: no network, too little memory) the hashed embedder is used, so
 the app never blocks on the model.
 
-AI coding assistants were also used while building the project. **[TODO: confirm which assistants
-were used and state them here, as the rules ask for the tools used.]**
+**Development tools.** The project was built with Claude Code (Anthropic's AI coding assistant), which
+wrote most of the code, tests and documentation under the team's direction, reviewed the design, and
+built the pipeline that records the demo video. Claude is not used by the app at runtime.
 
 ## Architecture
 
@@ -248,6 +249,7 @@ src/ai/intent.js        note intent: dues / event / donation / other
 src/agent.js            sync, match, detect duplicates/overpayments/strangers, plan reminders, execute approvals
 src/ledger.js           per-member paid / outstanding / credit / status
 src/store.js, seed.js   JSON file store, fictional demo club
+scripts/sandbox-check.mjs  step-by-step check of the PayPal sandbox connection
 public/                 single-page app, AG Grid Community from jsDelivr
 test/                   node:test, fake embedder + mock PayPal
 docs/                   API contract, pitch, Devpost text, video script
@@ -286,13 +288,16 @@ on the club's own server.
 | `PORT` | `3000` | HTTP port (Render sets it automatically) |
 | `PAYPAL_API_BASE` | `https://api-m.sandbox.paypal.com` | Optional override of the PayPal API base URL |
 
-Never commit keys. `.env` files are git-ignored.
+Never commit keys. `.env` files are git-ignored; `.env.example` shows the format. `npm start` reads `.env` if it exists.
 
 ## Sandbox setup
 
 1. Log in at [developer.paypal.com](https://developer.paypal.com) and open **Apps & Credentials**
    (Sandbox).
-2. Create a REST app. Copy its client ID and secret into `PAYPAL_CLIENT_ID` / `PAYPAL_CLIENT_SECRET`.
+2. Create a REST app. Copy `.env.example` to `.env` and put the app's client ID and secret into
+   `PAYPAL_CLIENT_ID` / `PAYPAL_CLIENT_SECRET` (or set them as environment variables). Then run
+   `npm run sandbox:check`: it logs in, calls Transaction Search and Invoicing, and says what to fix if a
+   step fails. `npm run sandbox:check -- --invoice <sandbox personal email>` also sends a $1 test invoice.
 3. Under **Sandbox accounts** use (or create) a **business** account (the club) and one or more
    **personal** accounts (members). Log in to [sandbox.paypal.com](https://www.sandbox.paypal.com)
    as a personal account and send money to the business account with a note like
@@ -309,7 +314,7 @@ Never commit keys. `.env` files are git-ignored.
 ## Limitations and honest notes
 
 - **Sandbox only.** This entry has only been run against the PayPal sandbox and the mock.
-- **The hosted demo runs on the mock** unless sandbox keys are configured there, so judges can click
+- **The demo runs on the mock** unless sandbox keys are configured, so judges can click
   everything without accounts. The mock mirrors the real client's interface; it does not reproduce
   every PayPal edge case.
 - **Transaction Search lag** (see above) means a payment can take time to appear in sandbox mode.
@@ -325,7 +330,7 @@ Never commit keys. `.env` files are git-ignored.
 - **One club, one period, one dues amount per member.** No multi-club tenancy, no installments,
   no bank transfers or direct debit yet.
 - **Storage is a JSON file.** Fine for a club of a few hundred members, not built for more.
-- **No real users yet.** **[TODO: if you talk to treasurers before submitting, summarize what they said here.]**
+- **No real users yet.** The matcher has not been run on a real club's payments.
 
 ## Roadmap
 

@@ -512,7 +512,7 @@
     if (btn.parentElement === target) return;
     const hadFocus = document.activeElement === btn;
     target.appendChild(btn);
-    if (inFirstRun && !$('#fr-cta-slot .fr-promise')) target.insertAdjacentHTML('beforeend', '<span class="fr-promise">Takes a few seconds. Nothing is sent without you.</span>');
+    if (inFirstRun && !$('#fr-cta-slot .fr-promise')) target.insertAdjacentHTML('beforeend', '<span class="fr-promise">Takes a few seconds.</span>');
     if (hadFocus) btn.focus();
   }
 
@@ -595,7 +595,7 @@
     $('#hero-open-sub').textContent = pending.length
       ? [[by((p) => p.type === 'match' || p.type === 'review'), 'to check'], [by((p) => p.type === 'refund'), 'refund', 'refunds'], [by((p) => p.type === 'reminder'), 'invoice to send', 'invoices to send']]
         .filter(([n]) => n).map(([n, a, b]) => (b ? plural(n, a, b) : `${n} ${a}`)).join(' · ')
-      : 'We’ll flag new payments next time you check.';
+      : 'New payments appear after the next check.';
     card.setAttribute('aria-label', pending.length ? `${pending.length} ${pending.length === 1 ? 'thing needs' : 'things need'} your OK. Review in To approve.` : 'Nothing needs you. Open To approve.');
   }
 
@@ -699,7 +699,7 @@
 
   // ---------- inbox ----------
   const GROUPS = [
-    { key: 'check', types: ['match', 'review'], title: 'Check these matches', sub: 'We think we know who paid. Confirm to mark them paid.' },
+    { key: 'check', types: ['match', 'review'], title: 'Check these matches', sub: 'Confirm to mark them paid.' },
     { key: 'refund', types: ['refund'], title: 'Money going back', sub: 'Refunds go back through PayPal and can’t be undone.' },
     { key: 'reminder', types: ['reminder'], title: 'Still owe dues', sub: 'Each gets a PayPal invoice they can pay in one tap.' },
   ];
@@ -946,12 +946,12 @@
     let html = '';
     if (!proposals.length) {
       html = isFirstRun()
-        ? (ui.busy ? '' : `<p class="empty-quiet">Nothing to approve yet. Check your PayPal payments and we’ll match them to members and suggest next steps.</p>`)
-        : `<div class="empty-state">${TICKMARK}<h2>All squared away.</h2><p>No payments need you. We’ll flag new ones next time you check.</p></div>`;
+        ? (ui.busy ? '' : `<p class="empty-quiet">Nothing to approve yet.</p>`)
+        : `<div class="empty-state">${TICKMARK}<h2>All squared away.</h2><p>No payments need you.</p></div>`;
     } else {
       html += pending.length
         ? `<div class="inbox-head"><div><h2>${pending.length} ${pending.length === 1 ? 'thing needs' : 'things need'} your OK</h2><p>Nothing is sent or refunded until you approve it.</p></div></div>`
-        : `<div class="empty-state" style="padding-top:8px">${TICKMARK}<h2>All done.</h2><p>Every payment is sorted. We’ll flag new ones next time you check.</p></div>`;
+        : `<div class="empty-state" style="padding-top:8px">${TICKMARK}<h2>All done.</h2><p>Every payment is sorted.</p></div>`;
       const known = new Set(GROUPS.flatMap((g) => g.types));
       const groups = GROUPS.concat([{ key: 'other', types: [...new Set(proposals.map((p) => p.type))].filter((t) => !known.has(t)), title: 'Other', sub: '' }]);
       for (const g of groups) {

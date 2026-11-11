@@ -30,7 +30,7 @@ export class SandboxPayPal {
       headers: { Authorization: `Basic ${basic}`, 'Content-Type': 'application/x-www-form-urlencoded' },
       body: 'grant_type=client_credentials',
     });
-    if (!res.ok) throw new Error(`PayPal auth failed (${res.status}): ${await res.text()}`);
+    if (!res.ok) throw new Error(`PayPal auth failed (${res.status}): ${await res.text()} (${hint(401, '/v1/oauth2/token')})`);
     const json = await res.json();
     this.token = json.access_token;
     this.tokenExpires = Date.now() + json.expires_in * 1000;
@@ -53,7 +53,8 @@ export class SandboxPayPal {
     if (!res.ok) {
       const msg = json?.message || json?.error_description || text || res.statusText;
       const detail = json?.details?.map((d) => d.description || d.issue).join('; ');
-      throw new Error(`PayPal ${method} ${path.split('?')[0]} failed (${res.status}): ${msg}${detail ? ` — ${detail}` : ''}`);
+      const tip = hint(res.status, path);
+      throw new Error(`PayPal ${method} ${path.split('?')[0]} failed (${res.status}): ${msg}${detail ? ` — ${detail}` : ''}${tip ? ` (${tip})` : ''}`);
     }
     return json;
   }
@@ -102,7 +103,8 @@ export class SandboxPayPal {
         currency_code: currency,
         note: note?.slice(0, 4000),
         memo: `member:${member.id}`,
-        payment_term: dueDate ? { due_date: dueDate } : undefined,
+        // PayPal rejects a due date before the invoice date, so a deadline that has passed is left out.
+        payment_term: dueDate && dueDate >= new Date().toISOString().slice(0, 10) ? { due_date: dueDate } : undefined,
       },
       invoicer: { business_name: clubName?.slice(0, 300) },
       primary_recipients: [{
@@ -155,6 +157,15 @@ export class SandboxPayPal {
     });
     return json.verification_status === 'SUCCESS';
   }
+}
+
+// What to do about the errors a new sandbox app usually runs into.
+export function hint(status, path) {
+  if (status === 401) return 'check that PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET are the Sandbox keys of your REST app, not the Live ones';
+  if (status === 403 && path.startsWith('/v1/reporting')) return 'enable "Transaction Search" for the app in the PayPal developer dashboard; the permission can take a few hours to apply';
+  if (status === 403 && path.startsWith('/v2/invoicing')) return 'enable "Invoicing" for the app in the PayPal developer dashboard';
+  if (status === 403) return 'the app is missing a permission for this call; check its features in the PayPal developer dashboard';
+  return '';
 }
 
 function safeJson(text) {

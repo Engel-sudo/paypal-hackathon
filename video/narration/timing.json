@@ -1,0 +1,206 @@
+{
+ "voice": "af_heart",
+ "speed": 1.0,
+ "scenes": {
+  "hook": {
+   "duration": 23.25,
+   "beats": [
+    {
+     "start": 0.0,
+     "end": 6.272,
+     "text": "It's dues season at the Riverside Climbing Club. The money arrives on PayPal, and it arrives like this."
+    },
+    {
+     "start": 6.722,
+     "end": 8.86,
+     "text": "Sixty dollars, for Max and Tom."
+    },
+    {
+     "start": 9.16,
+     "end": 10.928,
+     "text": "Thirty, from someone called Fabi."
+    },
+    {
+     "start": 11.228,
+     "end": 12.732,
+     "text": "Lena, who paid twice."
+    },
+    {
+     "start": 13.032,
+     "end": 15.889,
+     "text": "And fifteen from a stranger, for a bouldering trip."
+    },
+    {
+     "start": 16.489,
+     "end": 22.75,
+     "text": "Someone has to work out who actually paid. In most clubs, that someone is a volunteer with a spreadsheet."
+    }
+   ]
+  },
+  "intro": {
+   "duration": 9.601,
+   "beats": [
+    {
+     "start": 0.0,
+     "end": 3.29,
+     "text": "Clubkeep is an AI treasurer that does that job for them."
+    },
+    {
+     "start": 3.79,
+     "end": 9.201,
+     "text": "Here's the club. Fourteen members, four hundred and five dollars to collect, and nothing booked yet."
+    }
+   ]
+  },
+  "run": {
+   "duration": 15.785,
+   "beats": [
+    {
+     "start": 0.0,
+     "end": 0.773,
+     "text": "One click."
+    },
+    {
+     "start": 1.273,
+     "end": 6.206,
+     "text": "Clubkeep pulls every incoming payment through PayPal's Transaction Search API."
+    },
+    {
+     "start": 6.556,
+     "end": 12.405,
+     "text": "Then a small language model, running on the club's own server, reads each note and matches it to a member."
+    },
+    {
+     "start": 12.755,
+     "end": 15.285,
+     "text": "No member data goes to an AI company."
+    }
+   ]
+  },
+  "reasons": {
+   "duration": 9.952,
+   "beats": [
+    {
+     "start": 0.0,
+     "end": 4.383,
+     "text": "Six of the ten payments are booked straight away, and every one shows its reasoning."
+    },
+    {
+     "start": 4.733,
+     "end": 6.605,
+     "text": "Fabi is Fabian Ward's nickname."
+    },
+    {
+     "start": 7.105,
+     "end": 9.352,
+     "text": "Leoni, with a typo, is Leonie Fischer."
+    }
+   ]
+  },
+  "ask": {
+   "duration": 10.539,
+   "beats": [
+    {
+     "start": 0.0,
+     "end": 2.437,
+     "text": "When it isn't sure, it doesn't guess. It asks."
+    },
+    {
+     "start": 2.837,
+     "end": 7.372,
+     "text": "Sarah's sixty dollars is exactly two memberships, and the note names her kids."
+    },
+    {
+     "start": 7.672,
+     "end": 10.039,
+     "text": "Confirm, and Max and Tom are both paid."
+    }
+   ]
+  },
+  "refund": {
+   "duration": 15.374,
+   "beats": [
+    {
+     "start": 0.0,
+     "end": 2.193,
+     "text": "Lena's second payment is a duplicate."
+    },
+    {
+     "start": 2.493,
+     "end": 6.981,
+     "text": "Approve it, and Clubkeep sends her money back through the PayPal Payments API."
+    },
+    {
+     "start": 7.331,
+     "end": 9.824,
+     "text": "The refund receipt stays attached to the decision."
+    },
+    {
+     "start": 10.274,
+     "end": 14.874,
+     "text": "Mark isn't a member. His fifteen dollars was for a trip, so that goes back too."
+    }
+   ]
+  },
+  "invoices": {
+   "duration": 13.956,
+   "beats": [
+    {
+     "start": 0.0,
+     "end": 6.978,
+     "text": "That leaves six people who still owe. Instead of an awkward message, each one gets a PayPal invoice with a pay button."
+    },
+    {
+     "start": 7.328,
+     "end": 10.313,
+     "text": "Sophie was five dollars short, so hers is for five."
+    },
+    {
+     "start": 10.663,
+     "end": 13.456,
+     "text": "Edit the note if you like, and send them all at once."
+    }
+   ]
+  },
+  "paid": {
+   "duration": 5.314,
+   "beats": [
+    {
+     "start": 0.0,
+     "end": 4.814,
+     "text": "When Sophie pays her invoice, Clubkeep picks it up from PayPal and marks her as paid."
+    }
+   ]
+  },
+  "history": {
+   "duration": 4.676,
+   "beats": [
+    {
+     "start": 0.0,
+     "end": 4.176,
+     "text": "Every decision, and every PayPal call, is logged for the next treasurer."
+    }
+   ]
+  },
+  "close": {
+   "duration": 15.233,
+   "beats": [
+    {
+     "start": 0.0,
+     "end": 4.946,
+     "text": "Clubkeep reads payments, refunds mistakes and sends invoices, all through PayPal."
+    },
+    {
+     "start": 5.296,
+     "end": 9.155,
+     "text": "The AI explains itself, and nothing moves money without your click."
+    },
+    {
+     "start": 9.505,
+     "end": 14.433,
+     "text": "It's open source, and free to run. An evening of spreadsheet work, done in two minutes."
+    }
+   ]
+  }
+ }
+}
