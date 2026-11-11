@@ -1,0 +1,171 @@
+1
+00:00:00,526 --> 00:00:03,478
+It's dues season at the Riverside Climbing Club.
+
+2
+00:00:03,478 --> 00:00:06,918
+The money arrives on PayPal, and it arrives like this.
+
+3
+00:00:07,248 --> 00:00:09,506
+Sixty dollars, for Max and Tom.
+
+4
+00:00:09,686 --> 00:00:11,574
+Thirty, from someone called Fabi.
+
+5
+00:00:11,754 --> 00:00:13,378
+Lena, who paid twice.
+
+6
+00:00:13,558 --> 00:00:16,535
+And fifteen from a stranger, for a bouldering trip.
+
+7
+00:00:17,015 --> 00:00:19,544
+Someone has to work out who actually paid.
+
+8
+00:00:19,544 --> 00:00:23,396
+In most clubs, that someone is a volunteer with a spreadsheet.
+
+9
+00:00:24,031 --> 00:00:27,441
+Clubkeep is an AI treasurer that does that job for them.
+
+10
+00:00:27,821 --> 00:00:28,705
+Here's the club.
+
+11
+00:00:28,705 --> 00:00:31,962
+Fourteen members, four hundred and five dollars to collect,
+
+12
+00:00:31,962 --> 00:00:33,352
+and nothing booked yet.
+
+13
+00:00:33,732 --> 00:00:34,625
+One click.
+
+14
+00:00:35,005 --> 00:00:40,058
+Clubkeep pulls every incoming payment through PayPal's Transaction Search API.
+
+15
+00:00:40,288 --> 00:00:43,742
+Then a small language model, running on the club's own server,
+
+16
+00:00:43,742 --> 00:00:46,257
+reads each note and matches it to a member.
+
+17
+00:00:46,487 --> 00:00:49,137
+No member data goes to an AI company.
+
+18
+00:00:49,767 --> 00:00:52,355
+Six of the ten payments are booked straight away,
+
+19
+00:00:52,355 --> 00:00:54,270
+and every one shows its reasoning.
+
+20
+00:00:54,500 --> 00:00:56,492
+Fabi is Fabian Ward's nickname.
+
+21
+00:00:56,872 --> 00:00:59,239
+Leoni, with a typo, is Leonie Fischer.
+
+22
+00:00:59,969 --> 00:01:01,973
+When it isn't sure, it doesn't guess.
+
+23
+00:01:01,973 --> 00:01:02,526
+It asks.
+
+24
+00:01:02,806 --> 00:01:07,461
+Sarah's sixty dollars is exactly two memberships, and the note names her kids.
+
+25
+00:01:07,641 --> 00:01:10,128
+Confirm, and Max and Tom are both paid.
+
+26
+00:01:10,759 --> 00:01:13,072
+Lena's second payment is a duplicate.
+
+27
+00:01:13,252 --> 00:01:17,860
+Approve it, and Clubkeep sends her money back through the PayPal Payments API.
+
+28
+00:01:18,090 --> 00:01:20,703
+The refund receipt stays attached to the decision.
+
+29
+00:01:21,033 --> 00:01:22,213
+Mark isn't a member.
+
+30
+00:01:22,213 --> 00:01:25,753
+His fifteen dollars was for a trip, so that goes back too.
+
+31
+00:01:26,384 --> 00:01:28,610
+That leaves six people who still owe.
+
+32
+00:01:28,610 --> 00:01:30,415
+Instead of an awkward message,
+
+33
+00:01:30,415 --> 00:01:33,482
+each one gets a PayPal invoice with a pay button.
+
+34
+00:01:33,712 --> 00:01:36,817
+Sophie was five dollars short, so hers is for five.
+
+35
+00:01:37,047 --> 00:01:39,960
+Edit the note if you like, and send them all at once.
+
+36
+00:01:40,590 --> 00:01:42,252
+When Sophie pays her invoice,
+
+37
+00:01:42,252 --> 00:01:45,524
+Clubkeep picks it up from PayPal and marks her as paid.
+
+38
+00:01:46,404 --> 00:01:50,700
+Every decision, and every PayPal call, is logged for the next treasurer.
+
+39
+00:01:51,336 --> 00:01:55,108
+Clubkeep reads payments, refunds mistakes and sends invoices,
+
+40
+00:01:55,108 --> 00:01:56,402
+all through PayPal.
+
+41
+00:01:56,632 --> 00:02:00,611
+The AI explains itself, and nothing moves money without your click.
+
+42
+00:02:00,841 --> 00:02:02,790
+It's open source, and free to run.
+
+43
+00:02:02,790 --> 00:02:05,889
+An evening of spreadsheet work, done in two minutes.

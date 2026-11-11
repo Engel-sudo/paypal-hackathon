@@ -47,10 +47,6 @@ Handles dues for a youth section where parents pay for their children, so the pa
 matches the member's. Some families have two or three kids in the club. Payment notes are first names,
 nicknames, or nothing useful at all.
 
-> [TODO: quote from a real treasurer you interviewed, with permission]
-
-> [TODO: second quote, ideally from a community or sports club treasurer rather than a student club]
-
 ## Why now
 
 - **PayPal is already where the money is** for many small clubs, because members can pay from their phone
@@ -106,13 +102,12 @@ people. And it doesn't stop at a match list; it proposes and executes the PayPal
 leftover.
 
 **Presentation.** The narrated demo follows one treasurer through one season's dues, from messy inbox to
-everyone paid. **[TODO: optional shot of the refund and invoices in the PayPal sandbox dashboard, once
-sandbox keys are set.]**
+everyone paid.
 
 ## Competitive landscape
 
 We describe categories here rather than specific products, because we haven't done a feature-by-feature
-review of named tools. **[TODO: if you want named comparisons, verify each product's features first.]**
+review of named tools.
 
 | Category | What it does well | Where it leaves the treasurer |
 |---|---|---|
@@ -138,9 +133,7 @@ This is a hackathon entry first. Realistic paths, roughly in order:
    PayPal Subscriptions for recurring dues, Payouts for reimbursing members' expenses, a handover report
    for the next treasurer and the annual audit.
 4. **Partnerships** with umbrella organizations (sports federations, student unions, alumni networks) that
-   could recommend it to their member clubs. **[TODO: verify interest before claiming any of this.]**
-
-> [TODO: if any club agrees to try it, add that here, with their permission. No numbers until there are real ones.]
+   could recommend it to their member clubs. We have not talked to any of them yet.
 
 ## Risks and answers
 

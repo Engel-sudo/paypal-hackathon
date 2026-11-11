@@ -51,8 +51,19 @@ Not verified here (blocked network in the build sandbox):
   `video/record.mjs` syncs each scene to its voice line and mixes the voice in. 1:44, 1080p, loudness-normalized.
 - 30 tests green.
 
-## Next
-- Deploy on Render; set PayPal sandbox keys; check the MiniLM model loads and memory is OK.
-- Optional: add a sandbox-dashboard shot (refund + invoices) to the video.
-- Upload the video to YouTube; fill the hosted URL / YouTube TODOs.
-- Real treasurer quotes for the TODO slots; submit on Devpost by Nov 10.
+## 2026-11-11: video redone, docs finalised, requirements checked
+- Video (`video/demo.mp4`, 2:08): new script (problem and audience first, then the flow once, in order), narration
+  split into beats so highlights and clicks land on the sentence that mentions them, spotlight + visible cursor,
+  PayPal endpoint chip per step, burned-in subtitles plus `video/demo.srt`, crisp 1080p frames instead of an
+  upscaled screen recording. Voice: full Kokoro model (the int8 one sounded rough), "Fabi" no longer read as
+  "Fab-eye". Recorded with the real MiniLM model, not the fallback.
+- Verified for the first time: the MiniLM model loads and gives the same demo result as the fallback
+  (6 of 10 booked, 10 proposals).
+- README / PITCH / DEVPOST: placeholder TODOs removed, development tools stated, button names corrected.
+- `docs/SUBMIT.md`: what is left to do by hand, in order, and a requirements table.
+
+Still not verified: real PayPal sandbox calls (no sandbox keys; the build box cannot reach PayPal).
+
+## Next (all by hand, see docs/SUBMIT.md)
+- Make the repo public. Upload the video to YouTube. Fill in Devpost.
+- Optional: deploy on Render; run once against the PayPal sandbox.
