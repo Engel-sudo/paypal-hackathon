@@ -82,3 +82,21 @@ test('fromTransaction ignores pending and negative entries', () => {
   assert.equal(fromTransaction({ transaction_info: { transaction_amount: { value: '5' }, transaction_status: 'P' } }), null);
   assert.equal(fromTransaction({ transaction_info: { transaction_amount: { value: '-5' } } }), null);
 });
+
+test('permission and key errors say what to do about them', async () => {
+  const f = fakeFetch({ ...auth, 'GET /v1/reporting/transactions': [403, { name: 'NOT_AUTHORIZED', message: 'Authorization failed due to insufficient permissions.' }] });
+  const pp = new SandboxPayPal({ clientId: 'id', clientSecret: 'secret', fetchImpl: f });
+  await assert.rejects(pp.listTransactions({ start: '2026-11-01T00:00:00Z', end: '2026-11-02T00:00:00Z' }), /insufficient permissions.*enable "Transaction Search"/);
+  const bad = new SandboxPayPal({ clientId: 'id', clientSecret: 'wrong', fetchImpl: fakeFetch({ 'POST /v1/oauth2/token': [401, { error: 'invalid_client' }] }) });
+  await assert.rejects(bad.listInvoices(), /auth failed \(401\).*Sandbox keys/);
+});
+
+test('a due date that has passed is left off the invoice', async () => {
+  const routes = { ...auth, 'POST /v2/invoicing/invoices': [201, { id: 'INV2-1' }], 'POST /v2/invoicing/invoices/INV2-1/send': [200, {}] };
+  const member = { id: 'm1', name: 'Lena Park', email: 'lena@example.com' };
+  for (const [dueDate, expected] of [['2020-01-01', undefined], ['2999-01-01', { due_date: '2999-01-01' }]]) {
+    const f = fakeFetch(routes);
+    await new SandboxPayPal({ clientId: 'id', clientSecret: 'secret', fetchImpl: f }).createAndSendInvoice({ member, amount: 30, currency: 'USD', clubName: 'Club', dueDate });
+    assert.deepEqual(f.calls.find((c) => c.path === '/v2/invoicing/invoices').body.detail.payment_term, expected);
+  }
+});

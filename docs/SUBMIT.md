@@ -4,7 +4,8 @@ Deadline: **Nov 12, 2026, 12:00 PST (21:00 in Germany).** Steps 1, 2 and 5 are r
 
 ## 1. Make the repository public (required)
 
-The rules ask for a public repository with an open-source license. The repo is currently **private**.
+The rules ask for a public repository with an open-source license. The repo is currently **private**
+(teammates only see it if they are collaborators).
 GitHub: Settings > General > Danger Zone > Change visibility > Public. The MIT license is already detected
 and shows in the About box. While you are there, add a description ("Clubkeep: the AI treasurer for clubs
 that collect dues on PayPal") and, if you deploy, the demo URL as the website.
@@ -31,16 +32,22 @@ run covers that. A live URL still helps, because judges are more likely to click
 Everything in the video runs on the built-in mock PayPal client. The sandbox client
 (`src/paypal/sandbox.js`) is covered by tests with recorded request shapes but has **never been run against
 the real sandbox**. Judging stage 1 is pass/fail on "reasonably uses PayPal APIs", so a real run is worth
-an hour if you have one:
+half an hour if you have it:
 
-1. developer.paypal.com > Apps & Credentials (Sandbox) > create a REST app; enable Transaction Search and Invoicing.
-2. `PAYPAL_CLIENT_ID=... PAYPAL_CLIENT_SECRET=... npm start`, then click **Check PayPal payments**.
-3. Approve one invoice proposal and check it shows up in the sandbox business account under Invoicing.
-4. If it works, say so in the Devpost text and add a screenshot of the sandbox invoice to the image gallery.
-   If something fails, the error from PayPal is shown on the proposal; fix or mention it under limitations.
+1. developer.paypal.com > Apps & Credentials, toggle **Sandbox** > your REST app. Under Features tick
+   **Transaction Search** and **Invoicing** and save. (Transaction Search can take a few hours to apply.)
+2. In the project folder: copy `.env.example` to `.env` and paste the app's Client ID and Secret into it.
+3. Run `npm run sandbox:check`. Three lines should say PASS. A FAIL line says what to fix.
+4. Run `npm run sandbox:check -- --invoice <email of your sandbox personal account>` (the email is under
+   Testing Tools > Sandbox Accounts). It sends a $1 test invoice.
+5. Log in at sandbox.paypal.com with the sandbox **business** account, open Invoicing, and screenshot the
+   invoice. Add the screenshot to the Devpost gallery and say in the Devpost text that the PayPal calls were
+   run against the sandbox.
+6. Optional: `npm start` and use the app itself. The badge at the top now says sandbox. The demo members
+   have made-up email addresses, so add yourself as a member with the sandbox personal email to see an
+   invoice arrive and get paid.
 
-Transaction Search lags by up to a few hours, so payments you send today may not be searchable before the deadline.
-Invoices are instant.
+If a step fails and the message does not make the fix obvious, paste the FAIL line (not the keys) to Claude.
 
 ## 5. Fill in the Devpost form (required)
 
@@ -57,7 +64,7 @@ Invoices are instant.
 |---|---|
 | Uses PayPal meaningfully | Transaction Search, Payments v2 refunds, Invoicing v2, webhooks (`src/paypal/sandbox.js`); see step 4 |
 | Uses AI meaningfully | On-server MiniLM embeddings + scoring matcher + treasurer agent (`src/ai/`, `src/agent.js`) |
-| Working build, not a mockup | Runs with `npm install && npm start`; 30 tests pass |
+| Working build, not a mockup | Runs with `npm install && npm start`; 32 tests pass |
 | Public repo with open-source license | MIT license present; **repo still private (step 1)** |
 | Text description, tools used | `DEVPOST.md` |
 | Video under 3 minutes, public on YouTube | `video/demo.mp4` is 2:08; **upload pending (step 2)** |

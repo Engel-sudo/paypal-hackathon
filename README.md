@@ -200,7 +200,7 @@ Until it has loaded (or if it can't load: no network, too little memory) the has
 the app never blocks on the model.
 
 **Development tools.** The project was built with Claude Code (Anthropic's AI coding assistant), which
-wrote most of the code, tests and documentation under the author's direction, reviewed the design, and
+wrote most of the code, tests and documentation under the team's direction, reviewed the design, and
 built the pipeline that records the demo video. Claude is not used by the app at runtime.
 
 ## Architecture
@@ -249,6 +249,7 @@ src/ai/intent.js        note intent: dues / event / donation / other
 src/agent.js            sync, match, detect duplicates/overpayments/strangers, plan reminders, execute approvals
 src/ledger.js           per-member paid / outstanding / credit / status
 src/store.js, seed.js   JSON file store, fictional demo club
+scripts/sandbox-check.mjs  step-by-step check of the PayPal sandbox connection
 public/                 single-page app, AG Grid Community from jsDelivr
 test/                   node:test, fake embedder + mock PayPal
 docs/                   API contract, pitch, Devpost text, video script
@@ -287,13 +288,16 @@ on the club's own server.
 | `PORT` | `3000` | HTTP port (Render sets it automatically) |
 | `PAYPAL_API_BASE` | `https://api-m.sandbox.paypal.com` | Optional override of the PayPal API base URL |
 
-Never commit keys. `.env` files are git-ignored.
+Never commit keys. `.env` files are git-ignored; `.env.example` shows the format. `npm start` reads `.env` if it exists.
 
 ## Sandbox setup
 
 1. Log in at [developer.paypal.com](https://developer.paypal.com) and open **Apps & Credentials**
    (Sandbox).
-2. Create a REST app. Copy its client ID and secret into `PAYPAL_CLIENT_ID` / `PAYPAL_CLIENT_SECRET`.
+2. Create a REST app. Copy `.env.example` to `.env` and put the app's client ID and secret into
+   `PAYPAL_CLIENT_ID` / `PAYPAL_CLIENT_SECRET` (or set them as environment variables). Then run
+   `npm run sandbox:check`: it logs in, calls Transaction Search and Invoicing, and says what to fix if a
+   step fails. `npm run sandbox:check -- --invoice <sandbox personal email>` also sends a $1 test invoice.
 3. Under **Sandbox accounts** use (or create) a **business** account (the club) and one or more
    **personal** accounts (members). Log in to [sandbox.paypal.com](https://www.sandbox.paypal.com)
    as a personal account and send money to the business account with a note like

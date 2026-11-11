@@ -62,6 +62,10 @@ Not verified here (blocked network in the build sandbox):
 - README / PITCH / DEVPOST: placeholder TODOs removed, development tools stated, button names corrected.
 - `docs/SUBMIT.md`: what is left to do by hand, in order, and a requirements table.
 
+- Later the same day: repeated helper text trimmed in the interface (video re-recorded to match); `.env` support
+  and `.env.example`; `npm run sandbox:check` (step-by-step sandbox test with fix hints); PayPal 401/403 errors
+  now say what to do; a due date in the past is left off invoices (PayPal rejects it). 32 tests green.
+
 Still not verified: real PayPal sandbox calls (no sandbox keys; the build box cannot reach PayPal).
 
 ## Next (all by hand, see docs/SUBMIT.md)

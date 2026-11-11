@@ -133,7 +133,7 @@ same buttons hit the PayPal sandbox.
 > script.
 >
 > **Development tools.** Claude Code (Anthropic's AI coding assistant) wrote most of the code, tests and
-> documentation under my direction, reviewed the design, and built the pipeline that records the demo
+> documentation under our direction, reviewed the design, and built the pipeline that records the demo
 > video. Claude is not used by the app at runtime.
 
 ## Links
