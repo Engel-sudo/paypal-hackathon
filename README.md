@@ -161,7 +161,7 @@ initials, typos, one payment for several people, parents paying for children. Wh
   endpoint behind each step as it happens. The narration is an AI-generated voiceover (Kokoro-82M, a free
   open-source text-to-speech model run locally); subtitles are burned in and also in
   [`video/demo.srt`](video/demo.srt). Script: [`docs/VIDEO_SCRIPT.md`](docs/VIDEO_SCRIPT.md).
-- Pitch: [`docs/PITCH.md`](docs/PITCH.md). Devpost text: [`docs/DEVPOST.md`](docs/DEVPOST.md).
+- Pitch: [`docs/PITCH.md`](docs/PITCH.md).
 - API contract between backend and frontend: [`docs/API.md`](docs/API.md).
 - The demo is seeded with a fictional club, so judges can click through the whole flow without accounts.
 
@@ -252,7 +252,7 @@ src/store.js, seed.js   JSON file store, fictional demo club
 scripts/sandbox-check.mjs  step-by-step check of the PayPal sandbox connection
 public/                 single-page app, AG Grid Community from jsDelivr
 test/                   node:test, fake embedder + mock PayPal
-docs/                   API contract, pitch, Devpost text, video script
+docs/                   API contract, pitch, video script
 ```
 
 ## Deploy on Render
